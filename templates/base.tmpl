@@ -13,7 +13,7 @@ export PATH=${CLFS}/cross-tools/bin:/bin:/usr/bin
 rm -rf "${CLFS}"/build/*
 {{unpack}}
 export LC_ALL=POSIX
-export CLFS_HOST=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')
+export CLFS_HOST=$(gcc -dumpmachine)
 export CLFS_TARGET="{{target}}"
 export CLFS_CFLAGS="{{cflags}}"
 export MAKEFLAGS="-j$(nproc) -l$(nproc)"

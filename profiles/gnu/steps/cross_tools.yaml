@@ -9,18 +9,18 @@ cross_tools:
         fi
         # initial setup:
         install -d "${CLFS}/cross-tools"
-        install -d "${CLFS}/lib"
 
         {% if bits == 64 %}
+        install -d "${CLFS}/lib"
         install -d "${CLFS}/usr/lib64"
         ln -sf lib "${CLFS}/lib64"
         ln -sf lib64 "${CLFS}/usr/lib"
         test -L "${CLFS}/lib64"
         test -L "${CLFS}/usr/lib"
         {% else %}
+        install -d "${CLFS}/lib"
         install -d "${CLFS}/usr/lib"
-        ln -sf usr/lib "${CLFS}/lib"
-        test -L "${CLFS}/lib"
+        test -d "${CLFS}/lib"
         test -d "${CLFS}/usr/lib"
         {% endif %}
 
@@ -141,7 +141,9 @@ cross_tools:
         make DESTDIR=${CLFS} install
 
         install -d ${CLFS}/usr/${CLFS_TARGET}
+        install -d ${CLFS}/cross-tools/${CLFS_TARGET}/lib
         ln -sf ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
+
         cd "${CLFS}"/usr
         find lib -type f \
           -iname 'crt*.o' \
