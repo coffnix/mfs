@@ -1,4 +1,4 @@
-fchroot:
+mchroot:
   defaults:
     template: stage1.tmpl
   steps:
@@ -20,10 +20,15 @@ fchroot:
         install -m 0755 -d $ROOT/usr/sbin
         install -m 0755 -d $ROOT/usr/bin
         # also fix a lib issue -- did I miss some steps from metro?
+        {% if bits == 64 %}
         install -m 0755 -d $ROOT/lib64
         ln -sf lib64 $ROOT/lib
         install -m 0755 -d $ROOT/usr/lib
         ln -sf lib $ROOT/usr/lib64
+        {% else %}
+        install -m 0755 -d $ROOT/lib
+        install -m 0755 -d $ROOT/usr/lib
+        {% endif %}
         install -d ${ROOT}/{proc,sys,dev}
         # create symlink to real meta-repo to allow ego to pick up profiles inside ROOT...
         install -m 0755 -o 250 -g 250 -d $ROOT/var/git

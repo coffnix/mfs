@@ -1,6 +1,6 @@
-fchroot:
+mchroot:
   defaults:
-    template: fchroot.tmpl
+    template: mchroot.tmpl
   steps:
     - linux: |
         make mrproper

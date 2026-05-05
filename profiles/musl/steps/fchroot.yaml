@@ -1,12 +1,12 @@
-fchroot:
+mchroot:
   defaults:
-    template: fchroot.tmpl
+    template: mchroot.tmpl
   steps:
     - none: |
 
         # We will use this part of the process to create the necessary base environment for the
         # native build environment. This will allow these things to be wiped away, and in theory
-        # we can re-start the fchroot build to recreate these.
+        # we can re-start the mchroot build to recreate these.
 
         # The following configuration file tells musl to look for libraries in the following paths,
         # which includes /tools/lib. This is the musl equivalent to /etc/ld.so.conf and ldconfig.

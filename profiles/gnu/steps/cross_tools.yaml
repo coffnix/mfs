@@ -10,29 +10,41 @@ cross_tools:
         # initial setup:
         install -d "${CLFS}/cross-tools"
         install -d "${CLFS}/lib"
+
+        {% if bits == 64 %}
         install -d "${CLFS}/usr/lib64"
         ln -sf lib "${CLFS}/lib64"
         ln -sf lib64 "${CLFS}/usr/lib"
-        # make sure it's a symlink
         test -L "${CLFS}/lib64"
         test -L "${CLFS}/usr/lib"
+        {% else %}
+        install -d "${CLFS}/usr/lib"
+        ln -sf usr/lib "${CLFS}/lib"
+        test -L "${CLFS}/lib"
+        test -d "${CLFS}/usr/lib"
+        {% endif %}
+
         # Create critical directories:
         install -d ${CLFS}/{dev,proc,run,sys,etc,var}
         install -m 1777 -d ${CLFS}/tmp ${CLFS}/var/tmp
+
     - linux: |
         make mrproper
         make ARCH={{arch}} INSTALL_HDR_PATH=${CLFS}/usr headers_install
+
     - automake: |
         ./configure \
           --prefix=${CLFS}/cross-tools
         make
         make install
+
     - pkgconf: |
         ./configure \
           --prefix=${CLFS}/cross-tools
-          make
-          make install
-          ln -s pkgconf ${CLFS}/cross-tools/bin/pkg-config
+        make
+        make install
+        ln -s pkgconf ${CLFS}/cross-tools/bin/pkg-config
+
     - binutils: |
         mkdir binutils-build && cd binutils-build
         AR=ar AS=as ../configure \
@@ -50,6 +62,7 @@ cross_tools:
           --disable-werror
         make
         make install
+
     - gmp: |
         ./configure \
           --prefix=${CLFS}/cross-tools \
@@ -58,6 +71,7 @@ cross_tools:
         make
         make check
         make install
+
     - mpfr: |
         LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" ./configure \
           --prefix=${CLFS}/cross-tools \
@@ -65,6 +79,7 @@ cross_tools:
           --with-gmp=${CLFS}/cross-tools
         make
         make install
+
     - mpc: |
         LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" ./configure \
           --prefix=${CLFS}/cross-tools \
@@ -72,6 +87,7 @@ cross_tools:
           --with-mpfr=${CLFS}/cross-tools
         make
         make install
+
     - gcc: |
         mkdir gcc-build && cd gcc-build
         AR=ar LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" \
@@ -109,6 +125,7 @@ cross_tools:
           --with-mpc=${CLFS}/cross-tools
         make all-gcc all-target-libgcc
         make install-gcc install-target-libgcc
+
     - glibc: |
         mkdir glibc-build && cd glibc-build
         ../configure \
@@ -129,6 +146,7 @@ cross_tools:
         find lib -type f \
           -iname 'crt*.o' \
           -exec ln -sf ../../../usr/{} "${CLFS}"/cross-tools/"${CLFS_TARGET}"/{} \;
+
     - gcc: |
         mkdir gcc-build && cd gcc-build
         AR=ar LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" \
@@ -157,12 +175,10 @@ cross_tools:
         make AS_FOR_TARGET="${CLFS_TARGET}-as" \
           LD_FOR_TARGET="${CLFS_TARGET}-ld"
         make install
+
     - file: |
-        # to cross-compile file, you need to have a matching native
-        # version. This is the native version. See FL-10023.
         ./configure \
-        --prefix=${CLFS}/cross-tools \
-        --with-pic=yes
+          --prefix=${CLFS}/cross-tools \
+          --with-pic=yes
         make
         make install
-

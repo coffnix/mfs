@@ -12,7 +12,7 @@ micro-containers, completely from sources, bootstrapping the system using a cros
 environment is a completely new, "greenfield" environment built from source code, not inheriting
 any binary parts from any previously-built environment.
 
-It leverages the ``fchroot`` tool to perform building of non-native arches, such as arm-64bit,
+It leverages the ``mchroot`` tool to perform building of non-native arches, such as arm-64bit,
 on x86-64bit systems.
 
 Supported Build Artifacts
@@ -41,7 +41,7 @@ will perform the actual build process. Our YAML is designed to be clean, elegant
 to use so it's what you want to edit if you are working on improving or augmenting the build
 steps.
 
-To use Macaroni From Scratch to build for a non-native architecture, ``fchroot`` and its associated
+To use Macaroni From Scratch to build for a non-native architecture, ``mchroot`` and its associated
 QEMU and QEMU-related dependencies must be installed, and a Linux system must be used.
 
 The Ideal Setup
@@ -70,7 +70,7 @@ LXD Setup
 
    Let's say you are building for arm-64bit and your host is x86-64bit. You would download and
    extract a stage3 for arm-64bit to a temporary directory on the host. This stage3 is used
-   solely for the purpose of giving fchroot something to "fchroot into" so it can initialize
+   solely for the purpose of giving mchroot something to "mchroot into" so it can initialize
    the kernel settings to support arm-64bit emulation on the host, so it's active and ready
    for lxd containers.
 
@@ -79,13 +79,13 @@ LXD Setup
    only need to do this once per power-on cycle -- you'll need to repeat these steps after every
    reboot of the host.
 
-   Once initialization is complete on the host, fchroot will work correctly in the LXD container.
+   Once initialization is complete on the host, mchroot will work correctly in the LXD container.
 
    We would like to fix this issue via a Linux kernel fix, which we are tracking in this Macaroni
    Linux issue: https://bugs.macaroni.org/browse/FL-9989
 
    Until the Linux kernel offers this capability to containers, we will work to make this
-   workaround less painful -- likely by adding a capability to fchroot so it can easily be used
+   workaround less painful -- likely by adding a capability to mchroot so it can easily be used
    to "initialize" a host without downloading and extracting a stage3.
 
 This section documents the "ideal" LXD-based setup which we recommend as a starting point.
@@ -102,14 +102,14 @@ If these assumptions are not suitable for your environment, the following
 environment variables can be exported to customize the behavior of the ``mfs`` script:
 
 * ``LXD_LAUNCH_EXTRA_ARGS`` which defaults to ``-p default -n lxdbr0``.
-* ``LXD_MFS_SOURCE_IMAGE`` which sets the LXD image to use for builds and defaults to ``macaroni-fchroot``.
+* ``LXD_MFS_SOURCE_IMAGE`` which sets the LXD image to use for builds and defaults to ``macaroni-mchroot``.
 * ``LXD_INTERFACE`` which specifies the interface to configure inside the LXD container and defaults to ``eth0``.
 
 Next, import a suitable LXD tarball from https://build.macaroni.org and
-save it with the alias of ``macaroni-fchroot``::
+save it with the alias of ``macaroni-mchroot``::
 
   $ wget https://build.macaroni.org/next/x86-64bit/intel64-skylake/2022-07-21/lxd-intel64-skylake-next-2022-07-21.tar.xz
-  $ lxc image import lxd-intel64-skylake-next-2022-07-21.tar.xz --alias macaroni-fchroot
+  $ lxc image import lxd-intel64-skylake-next-2022-07-21.tar.xz --alias macaroni-mchroot
 
 Fchroot does not need to be pre-installed in this image, but if you do customize it to pre-install
 Fchroot, then it will speed up repeated launches of builds as Fchroot and QEMU will not need to

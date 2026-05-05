@@ -17,8 +17,8 @@ if [ ! -e "$arch_yaml" ]; then
 	echo "Required file $arch_yaml not found. Exiting."
 	exit 1
 fi
-export LXD_FFS_SOURCE_IMAGE="funtoo-fchroot"
-export EMERGE_PACKAGES="fchroot pyyaml jinja"
+export LXD_FFS_SOURCE_IMAGE="funtoo-mchroot"
+export EMERGE_PACKAGES="mchroot pyyaml jinja"
 export TEST_NAME="ffs-${USER}-${ffs_arch}-${ffs_build}"
 export LXD_INTERFACE=${LXD_INTERFACE:-eth0}
 export EMERGE_JOBS=${EMERGE_JOBS:-10}
@@ -53,7 +53,7 @@ network_test() {
 }
 cur_step=""
 create="$LXD_FFS_SOURCE_IMAGE"
-for step in fchroot tools cross_tools; do
+for step in mchroot tools cross_tools; do
 	if [ -n "$(lxc image list -cl -f csv | grep $CNAME-$step)" ]; then
 		echo -n "A snapshot image exists for step $step:"
 		echo
@@ -73,15 +73,15 @@ done
 if [ "$ffs_build" == "gnu" ]; then
 	last_step="stage1"
 else
-	last_step="fchroot"
+	last_step="mchroot"
 fi
 if [ -z "$cur_step" ]; then
-	do_steps="cross_tools tools fchroot stage1"
+	do_steps="cross_tools tools mchroot stage1"
 elif [ "$cur_step" = "cross_tools" ]; then
-	do_steps="tools fchroot stage1"
+	do_steps="tools mchroot stage1"
 elif [ "$cur_step" = "tools" ]; then
-	do_steps="fchroot stage1"
-elif [ "$cur_step" = "fchroot" ]; then
+	do_steps="mchroot stage1"
+elif [ "$cur_step" = "mchroot" ]; then
 	do_steps="stage1"
 fi
 if [ -z "$do_steps" ]; then

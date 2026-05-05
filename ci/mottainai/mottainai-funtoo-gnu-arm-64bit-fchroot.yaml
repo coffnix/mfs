@@ -1,4 +1,4 @@
-name: "mfs/macaroni/gnu/arm-64bit/fchroot"
+name: "mfs/macaroni/gnu/arm-64bit/mchroot"
 artefact_path: sources
 namespace: mfs-sources
 script:
@@ -8,7 +8,7 @@ script:
 - bin/sourcer gnu fetch
 - bin/builder gnu arm-64bit cross_tools
 - bin/builder gnu arm-64bit tools
-- bin/builder gnu arm-64bit fchroot
+- bin/builder gnu arm-64bit mchroot
 environment:
 - SHELL=/bin/bash
 - LUET_NOLOCK=true
