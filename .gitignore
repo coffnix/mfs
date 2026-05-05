@@ -10,3 +10,4 @@ tmp/**
 usr/**
 var/**
 sources/**
+.mfs-state/**
