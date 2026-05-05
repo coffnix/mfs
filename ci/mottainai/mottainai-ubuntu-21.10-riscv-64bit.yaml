@@ -1,6 +1,6 @@
-name: "ffs/ubuntu/21.10/riscv-64bit"
+name: "mfs/ubuntu/21.10/riscv-64bit"
 artefact_path: sources
-namespace: ffs-sources
+namespace: mfs-sources
 script:
 - >-
   apt-get update && apt-get -y install python3-yaml python3-jinja2 wget xz-utils make gcc g++ rsync texinfo file m4 bzip2 patch
@@ -12,5 +12,5 @@ environment:
 - LUET_NOLOCK=true
 - LUET_YES=true
 image: ubuntu/21.10
-source: https://github.com/funtoo-src/ffs.git
+source: https://github.com/coffnix/mfs
 type: lxd

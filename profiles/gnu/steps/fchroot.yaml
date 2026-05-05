@@ -159,11 +159,11 @@ fchroot:
         ln -sf portage/make.conf /etc/make.conf
         install -d /etc/portage/make.profile
         cat > /etc/portage/make.profile/parent << "MKP_EOF"
-        core-kit:funtoo/1.0/linux-gnu/arch/{{ego_arch}}
-        core-kit:funtoo/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
-        core-kit:funtoo/1.0/linux-gnu/build/next
-        core-kit:funtoo/1.0/linux-gnu/flavor/core
-        core-kit:funtoo/1.0/linux-gnu/mix-ins/stage1
+        core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}
+        core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
+        core-kit:macaroni/1.0/linux-gnu/build/next
+        core-kit:macaroni/1.0/linux-gnu/flavor/core
+        core-kit:macaroni/1.0/linux-gnu/mix-ins/stage1
         MKP_EOF
         install -d /var/db/pkg/sys-apps/portage-${PORTAGE_VERSION}
     - ego: |
@@ -178,7 +178,7 @@ fchroot:
         cat > /etc/ego.conf << "EGO_EOF"
         [global]
         release = next
-        sync_base_url=https://github.com/funtoo-repo/{repo}
+        sync_base_url=https://github.com/macaroni-repo/{repo}
         EGO_EOF
         install -d /var/db/pkg/app-admin/ego-${EGO_VERSION}
         GIT_SSL_NO_VERIFY=true ego sync
@@ -211,7 +211,7 @@ fchroot:
         # If ncurses is built with libtinfo (i.e. USE="tinfo"), then libtinfo will exist, and bash will
         # currently automatically link against it even if we tell it to just use ncurses (see FL-10034).
         # So, if libtinfo is on this filesystem, then we want ncurses with USE="tinfo" on the stage1root.
-        # For now, I think I will address this by syncing with funtoo norms and ensuring ncurses is
+        # For now, I think I will address this by syncing with macaroni norms and ensuring ncurses is
         # built with libtinfo disabled.
 
         # The pre-built util-linux doesn't install libmount, which is required by glib. If we don't merge~

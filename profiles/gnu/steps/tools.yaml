@@ -139,7 +139,7 @@ tools:
         --enable-overwrite \
         --with-default-terminfo-dir=/usr/share/terminfo \
         --without-termlib
-        # Note: As per FL-10034, --without-termlib must match default on Funtoo, so that things
+        # Note: As per FL-10034, --without-termlib must match default on Macaroni, so that things
         #       like bash don't try linking against it and then expect ncurses[tinfo] on stage1.
         make
         make DESTDIR=${CLFS} install
@@ -157,7 +157,7 @@ tools:
         --includedir=/usr/include/ncursesw \
         --with-default-terminfo-dir=/usr/share/terminfo \
         --without-termlib
-        # Note: As per FL-10034, --without-termlib must match default on Funtoo, so that things
+        # Note: As per FL-10034, --without-termlib must match default on Macaroni, so that things
         #       like bash don't try linking against it and then expect ncurses[tinfo] on stage1.
         make
         make DESTDIR=${CLFS} install
@@ -225,8 +225,8 @@ tools:
         make
         make DESTDIR=${CLFS} install
         # Move critical binaries into /bin. For this tools build, if "dd" is in /usr/bin, other configure scripts
-        # will build their scripts assuming that /usr/bin/dd is its official location in Funtoo. So we need to match
-        # Funtoo:
+        # will build their scripts assuming that /usr/bin/dd is its official location in Macaroni. So we need to match
+        # Macaroni:
         install -d ${CLFS}/bin
         # Try to avoid an issue related to moving the mv command by referencing our pre-existing mv on rootfs:
         MV=/bin/mv
@@ -442,7 +442,7 @@ tools:
         install -d ${CLFS}/var/db/pkg/net-misc/rsync-${RSYNC_VERSION}
     - none: |
         cat > ${CLFS}/etc/profile << "PROFILE_EOF"
-        # Funtoo from Scratch /etc/profile for login shells in the temporary environment.
+        # Macaroni from Scratch /etc/profile for login shells in the temporary environment.
         #
         # The following settings allow terminal-aware programs to find the terminal definitions
         # and also allow temporary tools to be found, while also allowing 'official' tools installed

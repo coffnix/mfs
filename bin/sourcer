@@ -8,7 +8,7 @@ if os.path.exists(gitpath):
 	# run from git repo
 	sys.path.append(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), ".."))
 
-from ffs.common import Sourcer
+from mfs.common import Sourcer
 
 CLI_CONFIG = {
 	"build": {"positional": True},

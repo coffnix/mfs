@@ -349,7 +349,7 @@ index bf68a88ac..b8bdd137c 100644
 +		package.keywords in profiles or KEYWORDS in the ebuild, then it is truly masked on our
 +		arch as well *even if* it is unmasked on the TRACK_KEYWORDS arches. This means that
 +		"-arch" in KEYWORDS is "stronger" than simply not having "arch" in KEYWORDS, at least
-+		from the perspective of Funtoo's TRACK_KEYWORDS feature.
++		from the perspective of Macaroni's TRACK_KEYWORDS feature.
 +
 +		This way we still have the ability to hard-keyword-mask packages that are incompatible
 +		with certain arches. But in all other respects, we can have the same ebuilds available as
@@ -495,7 +495,7 @@ index 10f72d5c0..1b5764109 100644
  .TP
 +\fBDENY_KEYWORDS\fR = \fI[space delimited list of KEYWORDS]\fR
 +This is a variable intended to be used in profiles to automatically mask
-+packages that contain certain keywords. It was created for Funtoo so we
++packages that contain certain keywords. It was created for Macaroni so we
 +can use the "next" keyword to include an ebuild in next-release. This is
 +how it is used -- the regular release would include DENY_KEYWORDS="next"
 +which would result in any ebuilds explicitly tagged with KEYWORDS="next"

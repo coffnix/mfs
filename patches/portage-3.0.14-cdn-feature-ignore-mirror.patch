@@ -36,7 +36,7 @@ diff -urN portage-3.0.14/lib/portage/package/ebuild/fetch.py portage-3.0.14-fixe
 -			# XXX: This is not a good thing, and is temporary at best.
 -			print(_(">>> \"mirror\" mode desired and \"mirror\" restriction found; skipping fetch."))
 -			return 1
-+	# Disable evaluation of mirror restriction when utilizing Funtoo CDN:
++	# Disable evaluation of mirror restriction when utilizing Macaroni CDN:
 +	restrict_mirror = False
 +	if "cdn" not in features:
 +		# 'nomirror' is bad/negative logic. You Restrict mirroring, not no-mirroring.

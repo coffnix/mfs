@@ -1,6 +1,6 @@
-name: "ffs/funtoo/riscv-64bit/fchroot"
+name: "mfs/macaroni/riscv-64bit/fchroot"
 artefact_path: sources
-namespace: ffs-sources
+namespace: mfs-sources
 script:
 - sleep 5
 - >-
@@ -13,7 +13,7 @@ environment:
 - SHELL=/bin/bash
 - LUET_NOLOCK=true
 - LUET_YES=true
-image: funtoo/bootstrap-builder
-source: https://github.com/funtoo-src/ffs.git
+image: macaroni/bootstrap-builder
+source: https://github.com/coffnix/mfs
 type: lxd
 directory: /

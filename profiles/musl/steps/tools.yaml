@@ -339,7 +339,7 @@ tools:
         echo /lib:/usr/local/lib:/usr/lib:/tools/lib > ${CLFS}/etc/ld-musl-{{musl_lib_arch}}.path
 
         cat > ${CLFS}/etc/profile << "PROFILE_EOF"
-        # Funtoo from Scratch /etc/profile for login shells in the temporary environment.
+        # Macaroni from Scratch /etc/profile for login shells in the temporary environment.
         #
         # The following settings allow terminal-aware programs to find the terminal definitions
         # and also allow temporary tools to be found, while also allowing 'official' tools installed
