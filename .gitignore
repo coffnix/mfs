@@ -11,3 +11,6 @@ usr/**
 var/**
 sources/**
 .mfs-state/**
+etc/**
+bin/**
+sbin/**
