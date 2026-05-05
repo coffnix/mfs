@@ -17,7 +17,9 @@ sources:
           url: https://mirrors.kernel.org/gnu/{name}/{name}-{version}/{name}-{version}.tar.{ext}
           version: 14.3.0
       - glibc:
-          version: 2.42
+          version: 2.43
+          patches:
+            - glibc-2.43-linux-7-open_tree_clone.patch
       - ncurses:
           version: 6.5
           ext: gz
@@ -38,7 +40,7 @@ sources:
             - make-4.4-default-cxx.patch
           ext: gz
       - m4:
-          version: 1.4.19
+          version: 1.4.21
       - patch: 2.8
       - sed: 4.9
       - tar: 1.35

@@ -8,9 +8,9 @@ tools:
     - m4: |
         ./configure \
         --prefix=/usr \
-        --with-sysroot=${CLFS} \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET}
+        --host=${CLFS_TARGET} \
+        CC="${CLFS_TARGET}-gcc"
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-devel/m4-${M4_VERSION}
