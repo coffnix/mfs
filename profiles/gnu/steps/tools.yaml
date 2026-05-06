@@ -241,20 +241,69 @@ tools:
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/dev-libs/check-${CHECK_VERSION}
     - coreutils: |
+        {% if bits == 32 %}
+        printf '%s\n' \
+        'gl_cv_header_working_limits_h=yes' \
+        'gl_cv_func_strcasecmp_works=yes' \
+        'ac_cv_func_pipe2=no' \
+        'gl_cv_onwards_func_pipe2=no' \
+        'ac_cv_func_renameat2=no' \
+        'gl_cv_onwards_func_renameat2=no' \
+        'gl_cv_func_renameat2_works=no' \
+        'ac_cv_func_utmpxname=no' \
+        'ac_cv_func_qsort_r=no' \
+        'gl_cv_func_qsort_r=no' \
+        'gl_cv_onwards_func_qsort_r=no' \
+        'ac_cv_func_mkostemp=no' \
+        'gl_cv_onwards_func_mkostemp=no' \
+        'ac_cv_func_secure_getenv=no' \
+        'gl_cv_func_secure_getenv=no' \
+        'ac_cv_func_futimesat=no' \
+        'gl_cv_func_futimesat=no' \
+        'ac_cv_func_wmempcpy=no' \
+        'gl_cv_func_wmempcpy=no' \
+        'ac_cv_func_rawmemchr=no' \
+        'gl_cv_func_rawmemchr=no' \
+        'ac_cv_func_euidaccess=no' \
+        'gl_cv_func_euidaccess=no' \
+        'ac_cv_func_eaccess=no' \
+        'gl_cv_func_eaccess=no' \
+        'ac_cv_func_splice=no' \
+        'gl_cv_func_splice=no' \
+        'ac_cv_func_vmsplice=no' \
+        'gl_cv_func_vmsplice=no' \
+        'ac_cv_func_syncfs=no' \
+        'gl_cv_func_syncfs=no' \
+        'ac_cv_func_strtold_l=no' \
+        'gl_cv_func_strtold_l=no' \
+        'ac_cv_func_strverscmp=no' \
+        'gl_cv_func_strverscmp=no' \
+        > config.cache
+        export CPPFLAGS="-include ${CLFS}/usr/include/limits.h"
+        export COREUTILS_YEAR2038="--disable-year2038"
+        export COREUTILS_CACHE="--cache-file=config.cache"
+        {% else %}
+        export COREUTILS_YEAR2038=""
+        export COREUTILS_CACHE=""
+        {% endif %}
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
         --enable-install-program=hostname \
-        --cache-file=config.cache
+        ${COREUTILS_CACHE} \
+        ${COREUTILS_YEAR2038}
+        {% if bits == 32 %}
+        sed -i \
+          -e 's/^HAVE_STRVERSCMP = 1/HAVE_STRVERSCMP = 0/' \
+          -e 's/^GL_GNULIB_STRVERSCMP = 0/GL_GNULIB_STRVERSCMP = 1/' \
+          Makefile
+        {% endif %}
+        sed -i -e 's/^man1_MANS/#man1_MANS/' Makefile
         sed -i -e 's/^man1_MANS/#man1_MANS/' Makefile
         make
         make DESTDIR=${CLFS} install
-        # Move critical binaries into /bin. For this tools build, if "dd" is in /usr/bin, other configure scripts
-        # will build their scripts assuming that /usr/bin/dd is its official location in Macaroni. So we need to match
-        # Macaroni:
         install -d ${CLFS}/bin
-        # Try to avoid an issue related to moving the mv command by referencing our pre-existing mv on rootfs:
         MV=/bin/mv
         for bin in cat chgrp chmod chown cp date dd df echo \
                     false hostname ln ls mkdir mknod mv pwd rm \
@@ -266,17 +315,17 @@ tools:
             $MV ${CLFS}/usr/bin/${bin} ${CLFS}/bin
           fi
         done
-        # A subset of these moved binaries get /usr/bin compatibility symlinks pointing to their
-        # new location. This may still be required by some scripts:
         for sym in basename chroot cut dir dirname du env expr \
                     head mkfifo mktemp readlink seq sleep sort \
                     tail touch tr tty vdir wc yes; do
-          if [ ! -e  ${CLFS}/usr/bin/${sym} ]; then
+          if [ ! -e ${CLFS}/usr/bin/${sym} ]; then
             ln -s ../../bin/${sym} ${CLFS}/usr/bin/${sym}
           fi
         done
         install -d ${CLFS}/var/db/pkg/sys-apps/coreutils-${COREUTILS_VERSION}
     - diffutils: |
+        printf '%s\n' 'gl_cv_header_working_limits_h=yes' > config.cache
+        export CPPFLAGS="-include ${CLFS}/usr/include/limits.h"
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
