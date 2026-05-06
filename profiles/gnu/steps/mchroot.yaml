@@ -4,6 +4,7 @@ mchroot:
   steps:
     - linux: |
         test -e /usr/include/linux/version.h
+        make INSTALL_HDR_PATH=/usr headers_install
         install -d /var/db/pkg/sys-kernel/linux-headers-${LINUX_VERSION}
     - pkgconf: |
         ./configure \

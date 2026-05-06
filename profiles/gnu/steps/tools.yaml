@@ -280,7 +280,7 @@ tools:
         'gl_cv_func_strverscmp=no' \
         > config.cache
         export CPPFLAGS="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DMB_LEN_MAX=16 -DPATH_MAX=4096"
-        export CFLAGS="-march=pentium4 -O2 -pipe"
+        export CFLAGS="-march=pentium4 -O2 -pipe -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE"
         export COREUTILS_YEAR2038="--disable-year2038"
         export COREUTILS_CACHE="--cache-file=config.cache"
         {% else %}
