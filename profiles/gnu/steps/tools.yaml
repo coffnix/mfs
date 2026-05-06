@@ -52,6 +52,9 @@ tools:
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-libs/zlib-${ZLIB_VERSION}
     - gettext: |
+        {% if bits == 32 %}
+        export CPPFLAGS="${CPPFLAGS:-} -DMB_LEN_MAX=16 -DPATH_MAX=4096"
+        {% endif %}
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
@@ -84,8 +87,9 @@ tools:
         --enable-shared \
         --enable-64-bit-bfd \
         --disable-multilib \
-        --enable-gold=yes \
         --enable-plugins \
+        --disable-gold \
+        --disable-gprofng \
         --with-system-zlib \
         --enable-threads
         make
