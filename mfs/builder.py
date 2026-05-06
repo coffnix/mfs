@@ -10,10 +10,24 @@ from mfs.common import Sourcer
 
 class Builder:
 
+	SOURCE_ALIAS_SUFFIXES = (
+		"-final",
+	)
+
 	def get_jinja_template(self, template_file):
 		with open(template_file, "r") as tempf:
 			template = jinja2.Template(tempf.read())
 			return template
+
+	def source_name_for_step(self, name):
+		if name == "none" or name.startswith("none-"):
+			return "none"
+
+		for suffix in self.SOURCE_ALIAS_SUFFIXES:
+			if name.endswith(suffix):
+				return name[:-len(suffix)]
+
+		return name
 
 	def parse_yaml_rule(self, package_section):
 		if not isinstance(package_section, dict):
@@ -21,6 +35,7 @@ class Builder:
 
 		name = list(package_section.keys())[0]
 		body = list(package_section.values())[0]
+		source_name = self.source_name_for_step(name)
 
 		if not isinstance(body, str):
 			raise ValueError(f"Expecting str: {body}")
@@ -28,16 +43,16 @@ class Builder:
 		body_tmpl = jinja2.Environment(loader=jinja2.BaseLoader()).from_string(body)
 		body = body_tmpl.render(**self.arch)
 
-		if name != "none":
+		if source_name != "none":
 			out = {
 				"name": name,
-				"sources": name,
-				"unpack": self.sourcer.unpack(name),
+				"sources": source_name,
+				"unpack": self.sourcer.unpack(source_name),
 				"build_steps": body
 			}
 		else:
 			out = {
-				"name": "none",
+				"name": name,
 				"sources": "",
 				"unpack": "",
 				"build_steps": body
