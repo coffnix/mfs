@@ -6,11 +6,13 @@ tools:
         # Cleanup /bin symlinks from previous runs
         rm -f ${CLFS}/bin/bash ${CLFS}/bin/sh
     - m4: |
+        {% if bits == 32 %}
+        export CPPFLAGS="${CPPFLAGS:-} -DMB_LEN_MAX=16 -DPATH_MAX=4096"
+        {% endif %}
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        CC="${CLFS_TARGET}-gcc"
+        --host=${CLFS_TARGET}
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-devel/m4-${M4_VERSION}
