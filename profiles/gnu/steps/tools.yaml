@@ -493,16 +493,24 @@ tools:
     - util-linux: |
         # This must be disabled as per FL-10034.
         # LDFLAGS="-ltinfow"
+    
+        {% if bits == 32 %}
+        export UTIL_LINUX_CFLAGS="-I${CLFS}/usr/include -D_GNU_SOURCE -DLINE_MAX=2048 -DPATH_MAX=4096 -DMB_LEN_MAX=16"
+        {% else %}
+        export UTIL_LINUX_CFLAGS="-I${CLFS}/usr/include"
+        {% endif %}
+    
         NCURSESW6_CONFIG=" " \
         NCURSES6_CONFIG=" " \
         NCURSESW5_CONFIG=" " \
         NCURSES5_CONFIG=" " \
         LDFLAGS="-L${CLFS}/usr/lib -L${CLFS}/lib -Wl,-rpath,${CLFS}/usr/lib -Wl,-rpath,${CLFS}/lib -Wl,-rpath-link=${CLFS}/usr/lib -Wl,-rpath-link=${CLFS}/lib -lzstd -lbz2" \
-        CFLAGS="-I${CLFS}/usr/include" \
+        CFLAGS="${UTIL_LINUX_CFLAGS}" \
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
+        --without-libmagic \
         --disable-bash-completion \
         --disable-makeinstall-chown \
         --disable-makeinstall-setuid \
@@ -536,6 +544,10 @@ tools:
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/app-arch/xz-utils-${XZ_UTILS_VERSION}
     - which: |
+        {% if bits == 32 %}
+        export CPPFLAGS="-D_GNU_SOURCE -DPATH_MAX=4096"
+        {% endif %}
+    
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
