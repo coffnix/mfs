@@ -279,7 +279,8 @@ tools:
         'ac_cv_func_strverscmp=no' \
         'gl_cv_func_strverscmp=no' \
         > config.cache
-        export CPPFLAGS="-include ${CLFS}/usr/include/limits.h"
+        export CPPFLAGS="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DMB_LEN_MAX=16 -DPATH_MAX=4096"
+        export CFLAGS="-march=pentium4 -O2 -pipe"
         export COREUTILS_YEAR2038="--disable-year2038"
         export COREUTILS_CACHE="--cache-file=config.cache"
         {% else %}
@@ -344,12 +345,27 @@ tools:
         make -C src
         make DESTDIR=${CLFS} -C src install
         install -d ${CLFS}/var/db/pkg/sys-apps/diffutils-${DIFFUTILS_VERSION}
+    - xz-utils: |
+        ./configure \
+        --prefix=/usr \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET}
+        make
+        make DESTDIR=${CLFS} install
+        install -d ${CLFS}/var/db/pkg/app-arch/xz-utils-${XZ_UTILS_VERSION}
     - file: |
+        export CPPFLAGS="-I${CLFS}/usr/include"
+        export LDFLAGS="-L${CLFS}/usr/lib -L${CLFS}/lib -Wl,-rpath-link=${CLFS}/usr/lib -Wl,-rpath-link=${CLFS}/lib"
+        export PKG_CONFIG_LIBDIR="${CLFS}/usr/lib/pkgconfig:${CLFS}/usr/share/pkgconfig"
+        export PKG_CONFIG_PATH=""
+    
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
+        --with-sysroot=${CLFS} \
         --with-pic=yes
+    
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-apps/file-${FILE_VERSION}
@@ -535,14 +551,6 @@ tools:
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-apps/util-linux-${UTIL_LINUX_VERSION}
-    - xz-utils: |
-        ./configure \
-        --prefix=/usr \
-        --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET}
-        make
-        make DESTDIR=${CLFS} install
-        install -d ${CLFS}/var/db/pkg/app-arch/xz-utils-${XZ_UTILS_VERSION}
     - which: |
         {% if bits == 32 %}
         export CPPFLAGS="-D_GNU_SOURCE -DPATH_MAX=4096"
