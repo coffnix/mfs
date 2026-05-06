@@ -21,8 +21,7 @@ tools:
         --prefix=/usr \
         --with-sysroot=${CLFS} \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        --enable-cxx
+        --host=${CLFS_TARGET}
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/dev-libs/gmp-${GMP_VERSION}
