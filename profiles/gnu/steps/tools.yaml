@@ -324,14 +324,25 @@ tools:
         done
         install -d ${CLFS}/var/db/pkg/sys-apps/coreutils-${COREUTILS_VERSION}
     - diffutils: |
-        printf '%s\n' 'gl_cv_header_working_limits_h=yes' > config.cache
-        export CPPFLAGS="-include ${CLFS}/usr/include/limits.h"
+        {% if bits == 32 %}
+        printf '%s\n' \
+        'gl_cv_header_working_limits_h=yes' \
+        'gl_cv_func_strcasecmp_works=yes' \
+        > config.cache
+        export CPPFLAGS="-D_GNU_SOURCE -include ${CLFS}/usr/include/limits.h"
+        export DIFFUTILS_CACHE="--cache-file=config.cache"
+        {% else %}
+        export DIFFUTILS_CACHE=""
+        {% endif %}
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET}
-        make
-        make DESTDIR=${CLFS} install
+        --host=${CLFS_TARGET} \
+        ${DIFFUTILS_CACHE}
+        sed -i 's/^GL_CFLAG_GNULIB_WARNINGS = .*$/GL_CFLAG_GNULIB_WARNINGS = -Wno-cast-qual -Wno-conversion -Wno-float-equal -Wno-sign-compare -Wno-undef -Wno-unused-function -Wno-unused-parameter -Wno-float-conversion -Wimplicit-fallthrough -Wno-pedantic -Wno-sign-conversion -Wno-type-limits -Wno-unused-const-variable -Wno-unsuffixed-float-constants/' Makefile lib/Makefile
+        make -C lib
+        make -C src
+        make DESTDIR=${CLFS} -C src install
         install -d ${CLFS}/var/db/pkg/sys-apps/diffutils-${DIFFUTILS_VERSION}
     - file: |
         ./configure \
