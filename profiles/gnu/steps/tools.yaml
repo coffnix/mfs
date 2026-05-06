@@ -151,6 +151,8 @@ tools:
         mkdir ncurses-build && cd ncurses-build
         ../configure \
         --prefix=/usr \
+        --without-cxx-binding \
+        --without-cxx \
         --with-shared \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
@@ -168,6 +170,8 @@ tools:
         cd .. && mkdir ncursesw-build && cd ncursesw-build
         ../configure \
         --prefix=/usr \
+        --without-cxx-binding \
+        --without-cxx \
         --with-shared \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
