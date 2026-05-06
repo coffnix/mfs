@@ -14,3 +14,4 @@ sources/**
 etc/**
 bin/**
 sbin/**
+.bash_history
