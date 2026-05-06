@@ -356,11 +356,18 @@ tools:
     - findutils: |
         echo "gl_cv_func_wcwidth_works=yes" > config.cache
         echo "ac_cv_func_fnmatch_gnu=yes" >> config.cache
+    
+        {% if bits == 32 %}
+        echo "gl_cv_header_working_limits_h=yes" >> config.cache
+        export CPPFLAGS="-D_GNU_SOURCE -D_POSIX_ARG_MAX=4096"
+        {% endif %}
+    
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
         --cache-file=config.cache
+    
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-apps/findutils-${FINDUTILS_VERSION}
@@ -380,19 +387,28 @@ tools:
         ln -sf gawk ${CLFS}/usr/bin/awk
         install -d ${CLFS}/var/db/pkg/sys-apps/gawk-${GAWK_VERSION}
     - grep: |
+        {% if bits == 32 %}
+        export CPPFLAGS="-D_GNU_SOURCE -DPATH_MAX=4096"
+        {% endif %}
+    
         ./configure \
-        --bindir=/bin \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET}
+    
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-apps/grep-${GREP_VERSION}
     - gzip: |
+        {% if bits == 32 %}
+        export CPPFLAGS="-D_GNU_SOURCE -DMB_LEN_MAX=16 -DPATH_MAX=4096"
+        {% endif %}
+    
         ./configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET}
+    
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/app-arch/gzip-${GZIP_VERSION}
