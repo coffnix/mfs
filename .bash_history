@@ -23,3 +23,11 @@ ls /tmp/testls
 nm -D /bin/ls | egrep 'readdir|stat|xstat|getdents'
 ls bin
 ls /bin
+/cross-tools/bin/i686-pc-linux-gnu-gcc -V
+ls /cross-tools/bin/
+ls /cross-tools/bin/i686-pc-linux-gnu-gcc -v
+/cross-tools/bin/i686-pc-linux-gnu-gcc -v
+/cross-tools/bin/i686-pc-linux-gnu-gcc 
+/cross-tools/bin/i686-pc-linux-gnu-gcc -V
+file /root/mfs/cross-tools/bin/i686-pc-linux-gnu-gcc
+readelf -l /root/mfs/cross-tools/bin/i686-pc-linux-gnu-gcc | grep interpreter
