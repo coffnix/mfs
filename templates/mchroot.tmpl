@@ -5,6 +5,7 @@ if [ "$UID" != "0" ]; then
 else
 	sudo_exe=""
 fi
+/bin/rm -rf ${CLFS}/build/*
 exec $sudo_exe mchroot ${CLFS} /bin/bash --login << "EOF"
 export CLFS=/
 set -e
@@ -13,7 +14,6 @@ set -u
 set +h
 set -x
 umask 022
-rm -rf /build/*
 {{unpack}}
 export CLFS_TARGET={{target}}
 export BOOTSTRAP_RAP="yes"
