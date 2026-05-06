@@ -96,12 +96,26 @@ tools:
         make DESTDIR=${CLFS} install-bfd
         make DESTDIR=${CLFS} install
     - gcc: |
+        unset CC CXX CFLAGS CXXFLAGS CPPFLAGS LDFLAGS AR AS LD NM RANLIB STRIP
+        export CC_FOR_BUILD="gcc"
+        export CXX_FOR_BUILD="g++"
+        export AR_FOR_BUILD="ar"
+        export AS_FOR_BUILD="as"
+        export LD_FOR_BUILD="ld"
+        export NM_FOR_BUILD="nm"
+
+        export RANLIB_FOR_BUILD="ranlib"
         sed -i 's|^RAW_CXX_FOR_TARGET="$CXX_FOR_TARGET|& -nostdinc++|' configure
+        install -d ${CLFS}/usr/${CLFS_TARGET}
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
+        ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
+        install -d /usr/i686-pc-linux-gnu
+        ln -sfn ${CLFS}/usr/include /usr/i686-pc-linux-gnu/include
+        ln -sfn ${CLFS}/usr/include /usr/i686-pc-linux-gnu/sys-include
+        ln -sfn ${CLFS}/usr/lib /usr/i686-pc-linux-gnu/lib
         mkdir gcc-build && cd gcc-build
         ../configure \
-        LDFLAGS="-Wl,-rpath,${CLFS}/lib -Wl,-rpath-link,${CLFS}/lib" \
-        CFLAGS="-I${CLFS}/usr/include" \
-        CXXFLAGS="-I${CLFS}/usr/include" \
         {%- if arch == "powerpc" %}
         --with-abi=elfv2 \
         --enable-secureplt \
@@ -109,24 +123,27 @@ tools:
         {%- endif %}
         --prefix=/usr \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
+        --host=${CLFS_HOST} \
         --target=${CLFS_TARGET} \
         CC_FOR_TARGET="${CLFS_TARGET}-gcc" \
         --with-build-sysroot=${CLFS} \
+        --with-local-prefix=${CLFS}/usr \
         --disable-multilib \
         --enable-languages=c,c++ \
         --with-system-zlib \
         --with-native-system-header-dir=/usr/include \
         --disable-libssp \
+        --disable-c++tools \
         --enable-initfini-array \
         --enable-install-libiberty \
         --disable-libstdcxx-pch \
         --disable-libsanitizer \
-        --with-mpfr=${CLFS}/usr \
-        --with-gmp=${CLFS}/usr \
-        --with-mpc=${CLFS}/usr
-        make AS_FOR_TARGET="${AS}" \
-        LD_FOR_TARGET="${LD}"
+        --with-mpfr=${CLFS}/cross-tools \
+        --with-gmp=${CLFS}/cross-tools \
+        --with-mpc=${CLFS}/cross-tools
+        make \
+        AS_FOR_TARGET="${CLFS_TARGET}-as" \
+        LD_FOR_TARGET="${CLFS_TARGET}-ld"
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
     - ncurses: |
