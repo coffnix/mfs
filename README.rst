@@ -1,141 +1,69 @@
-Macaroni From Scratch
+Vipnix From Scratch
+
 ===================
 
-"Macaroni From Scratch" contains automation technology for Macaroni's Evolved Bootstrap project, which can
-be found here:
+"Vipnix From Scratch" is a source-based bootstrap framework derived from FFS (Funtoo From Scratch), originally created by Daniel Robbins. VFScratch has been heavily modified to support a personalized MacaroniOS-based environment, integrating Macaroni EGO tooling, Macaroni ebuilds, and several improvements to cross-compilation, chroot isolation and bootstrap reliability.
 
-  https://www.macaroni.org/Macaroni:Evolved_Bootstrap
+This technology can be used to bootstrap a personalized MacaroniOS-compatible stage1 tarball, as well as "Alkaline" MUSL micro-containers, completely from source code, bootstrapping the system using a cross-compiler, which itself is bootstrapped from a local compiler, ensuring the final binary environment is a completely new and isolated "greenfield" environment.
 
-This technology can be used to bootstrap a Macaroni stage1 tarball, as well as "Alkaline" MUSL
-micro-containers, completely from sources, bootstrapping the system using a cross-compiler
-(which itself is bootstrapped using a local compiler) to ensure the resultant built binary
-environment is a completely new, "greenfield" environment built from source code, not inheriting
-any binary parts from any previously-built environment.
+Unlike the original FFS implementation, VFScratch includes fixes for architecture contamination during cross-toolchain generation, preventing host binaries and host libraries from leaking into the target rootfs during bootstrap stages. This allows clean cross-compilation for architectures such as i686, arm64 and riscv64, even when building from completely different host architectures.
 
-It leverages the ``mchroot`` tool to perform building of non-native arches, such as arm-64bit,
-on x86-64bit systems.
+VFScratch leverages the ``vchroot`` tool, a heavily modified and improved fork of Fchroot, designed to perform isolated builds of non-native architectures using QEMU when necessary, while also avoiding unnecessary emulation on native architectures such as arm64 hosts building arm64 targets.
 
 Supported Build Artifacts
+
 =========================
 
-* ``gnu`` -- Macaroni Stage1 Tarball -- this is an initial Macaroni Linux system that can be used by ``metro``
-  to build a full Macaroni Linux system. Supported build system is x86-64bit, and supported targets
-  are x86-64bit, arm-64bit (aarch64) and riscv-64bit.
+* ``gnu`` , Macaroni-compatible Stage1 Tarball, this is an initial Linux environment that can later be used to generate a full source-based system using MacaroniOS tooling and ebuild infrastructure. Supported build hosts currently include x86-64bit and arm64 systems, and supported targets include x86-64bit, i686, arm64 (aarch64) and riscv64.
 
-* ``musl`` -- Alkaline MUSL Micro-Container -- this is a functioning MUSL-based environment that can be used
-  as a starting point for building custom runtimes. Supported build system is x86-64bit, and
-  supported targets are x86-64bit, arm-64bit (aarch64) and riscv-64bit. Work is ongoing on support
-  for powerpc-64bit.
+* ``musl`` , Alkaline MUSL Micro-Container, this is a lightweight MUSL-based environment intended for custom runtimes and containerized environments. Supported targets currently include x86-64bit, arm64 and riscv64, with ongoing work for additional architectures.
 
 Supported Build Systems
+
 =======================
 
-It is possible to run Macaroni From Scratch in any Linux or any Linux-like environment that has a
-C compiler, with minimal dependencies. If you want to bootstrap on something that is missing
-common modern things like Python 3, it is indeed possible to adapt things to do this.
+It is possible to run VFScratch on virtually any Linux or Linux-like system with a working C compiler and minimal dependencies.
 
-However, most people will prefer having the ability to dynamically generate the build scripts
-on the build system directly based YAML and templates, and this requires Python 3, PyYAML and
-Jinja2 installed. The Python scripts will dynamically generate bash scripts from YAML which
-will perform the actual build process. Our YAML is designed to be clean, elegant and intuitive
-to use so it's what you want to edit if you are working on improving or augmenting the build
-steps.
+The framework dynamically generates build scripts from YAML profiles and Jinja2 templates using Python 3. This design allows build steps to remain modular, readable and easy to customize without manually editing large shell scripts.
 
-To use Macaroni From Scratch to build for a non-native architecture, ``mchroot`` and its associated
-QEMU and QEMU-related dependencies must be installed, and a Linux system must be used.
+To build for non-native architectures, ``vchroot`` and its associated QEMU dependencies are required.
 
 The Ideal Setup
+
 ===============
 
-The "ideal" setup for Macaroni From Scratch is on a Linux system with LXD installed, for which we have
-a developer-centric build system that will do the full MFS build within an isolated Macaroni
-container. This means that you don't actually need PyYAML, Jinja2, QEMU and Fchroot on your
-local system, as they will be automatically installed and used inside the container.
+The recommended setup for VFScratch is a Linux system running LXD containers. This allows isolated builds, snapshotting, parallel bootstrap environments and safer experimentation while keeping the host system clean.
 
-This allows for rapid and isolated development of Macaroni from Scratch, as well as
-launching multiple simultaneous builds, the use of incremental snapshots to allow re-launching
-the build from the last successful phase, and other handy features.
+VFScratch can automatically inject local repository modifications into container builds, allowing rapid development and testing of bootstrap changes without manually copying files into containers.
 
-We recommend you start with the LXD environment under Macaroni if at all possible, and once comfortable
-in that environment, explore more minimal approaches to using Macaroni from Scratch if needed.
-We actively use the LXD setup so it is the official supported and maintained method at this time.
+Unlike the original FFS environment, the VFScratch workflow is designed around MacaroniOS tooling, EGO integration and Macaroni-compatible package management behavior.
 
 LXD Setup
+
 =========
 
-.. note::
-   If you are using this method for non-native (i.e. arm-64bit on x86-64bit) builds, then prior
-   to starting the build described below, you will need to perform an initialization step on
-   the host.
+This section documents the recommended LXD-based workflow.
 
-   Let's say you are building for arm-64bit and your host is x86-64bit. You would download and
-   extract a stage3 for arm-64bit to a temporary directory on the host. This stage3 is used
-   solely for the purpose of giving mchroot something to "mchroot into" so it can initialize
-   the kernel settings to support arm-64bit emulation on the host, so it's active and ready
-   for lxd containers.
+First, configure LXD on your Linux system and ensure your containers have working network connectivity.
 
-   This extra step is currently needed because Linux at this time does not provide a
-   container-local namespace for binfmt so it all has to be set up on the host first. You will
-   only need to do this once per power-on cycle -- you'll need to repeat these steps after every
-   reboot of the host.
+The following environment variables can be used to customize the behavior of the bootstrap launcher:
 
-   Once initialization is complete on the host, mchroot will work correctly in the LXD container.
+* ``LXD_LAUNCH_EXTRA_ARGS``
 
-   We would like to fix this issue via a Linux kernel fix, which we are tracking in this Macaroni
-   Linux issue: https://bugs.macaroni.org/browse/FL-9989
+* ``LXD_VFS_SOURCE_IMAGE``
 
-   Until the Linux kernel offers this capability to containers, we will work to make this
-   workaround less painful -- likely by adding a capability to mchroot so it can easily be used
-   to "initialize" a host without downloading and extracting a stage3.
+* ``LXD_INTERFACE``
 
-This section documents the "ideal" LXD-based setup which we recommend as a starting point.
+Next, import a compatible Linux image and assign it an alias for use during bootstrap.
 
-First, you will want to set up LXD under Macaroni Linux as documented here:
+To launch a build:
 
-  https://www.macaroni.org/LXD
+::
 
-You will want to ensure that ``lxdbr0`` is configured to provide network connectivity to your
-containers and that the ``default`` profile is sufficient to provide a single network interface
-on this network.
+  $ cd ~/VFScratch
 
-If these assumptions are not suitable for your environment, the following
-environment variables can be exported to customize the behavior of the ``mfs`` script:
+  $ ci/lxd-baremetal/bin/vfs gnu arm-64bit
 
-* ``LXD_LAUNCH_EXTRA_ARGS`` which defaults to ``-p default -n lxdbr0``.
-* ``LXD_MFS_SOURCE_IMAGE`` which sets the LXD image to use for builds and defaults to ``macaroni-mchroot``.
-* ``LXD_INTERFACE`` which specifies the interface to configure inside the LXD container and defaults to ``eth0``.
+This will instantiate an isolated build container and execute the full bootstrap process inside the container environment.
 
-Next, import a suitable LXD tarball from https://build.macaroni.org and
-save it with the alias of ``macaroni-mchroot``::
-
-  $ wget https://build.macaroni.org/next/x86-64bit/intel64-skylake/2022-07-21/lxd-intel64-skylake-next-2022-07-21.tar.xz
-  $ lxc image import lxd-intel64-skylake-next-2022-07-21.tar.xz --alias macaroni-mchroot
-
-Fchroot does not need to be pre-installed in this image, but if you do customize it to pre-install
-Fchroot, then it will speed up repeated launches of builds as Fchroot and QEMU will not need to
-be emerged each time.
-
-To launch a Macaroni from Scratch build, you will simply use our ``mfs`` script located
-under ``ci/lxd-baremetal/bin``::
-
-  $ cd ~/mfs
-  $ ci/lxd-baremetal/bin/mfs gnu arm-64bit
-
-This will instantiate a container named ``mfs-<username>-arm-64bit-gnu-test``, and will perform
-the build inside the container at the path ``/root/mfs-repo``. You will see output
-of the build as it runs on your console, but the actual build itself is happening within the
-container. To stop the build, press ^C. As various phases of the build are completed, snapshots
-will be taken. If you restart the build, you will be prompted as to whether you would like to use
-these snapshots as a starting point, or if you want to delete them instead. This is a handy feature
-if you are trying to fix a build issue that happens relatively late in the bootstrap.
-
-It's also important to note that our magic ``mfs`` script uses special tricks to grab any local
-changes you have made within the ``mfs`` repository when launching a build. This allows you to
-develop locally on a Linux host, and the builds you fire off inside LXD will grab these changes
-automatically.
-
-This should allow you to start playing with Macaroni from Scratch. While we have covered the basic
-first steps here, we have just introduced you to the first layer of Macaroni from Scratch. We also
-need to describe the YAML files in this repository that define what packages get built, and how
-they get built, so that you know how to customize builds as needed. This will be covered in the
-next sections, coming soon.
+Snapshots can optionally be used between build stages to accelerate development and debugging.
