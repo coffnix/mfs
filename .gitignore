@@ -15,3 +15,4 @@ etc/**
 bin/**
 sbin/**
 .bash_history
+mfs/__pycache__
