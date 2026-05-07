@@ -112,10 +112,10 @@ tools:
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
         ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
-        install -d /usr/${CLFS_TARGET}
-        ln -sfn ${CLFS}/usr/include /usr/${CLFS_TARGET}/include
-        ln -sfn ${CLFS}/usr/include /usr/${CLFS_TARGET}/sys-include
-        ln -sfn ${CLFS}/usr/lib /usr/${CLFS_TARGET}/lib
+        install -d ${CLFS}/usr/${CLFS_TARGET}
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
+        ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
         mkdir gcc-build && cd gcc-build
         ../configure \
         {%- if arch == "powerpc" %}
