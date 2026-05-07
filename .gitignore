@@ -10,9 +10,10 @@ tmp/**
 usr/**
 var/**
 sources/**
-.mfs-state/**
+.vfscratch-state/**
 etc/**
 bin/**
 sbin/**
 .bash_history
-mfs/__pycache__
+vfscratch/__pycache__
+packages/**

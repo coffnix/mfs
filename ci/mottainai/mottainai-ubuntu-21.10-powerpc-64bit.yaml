@@ -1,6 +1,6 @@
-name: "mfs/ubuntu/21.10/powerpc-64bit"
+name: "vfscratch/ubuntu/21.10/powerpc-64bit"
 artefact_path: sources
-namespace: mfs-sources
+namespace: vfscratch-sources
 script:
 - >-
   apt-get update && apt-get -y install python3-yaml python3-jinja2 wget xz-utils make gcc g++ rsync texinfo file m4 bzip2 patch
@@ -12,5 +12,5 @@ environment:
 - LUET_NOLOCK=true
 - LUET_YES=true
 image: ubuntu/21.10
-source: https://github.com/coffnix/mfs
+source: https://github.com/coffnix/vfscratch
 type: lxd

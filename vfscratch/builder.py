@@ -5,7 +5,7 @@ from datetime import datetime
 import jinja2
 from yaml import safe_load
 
-from mfs.common import Sourcer
+from vfscratch.common import Sourcer
 
 
 class Builder:
@@ -64,7 +64,7 @@ class Builder:
 	def state_paths(self, package_name):
 		state_dir = os.path.join(
 			os.environ["CLFS"],
-			".mfs-state",
+			".vfscratch-state",
 			self.build,
 			self.arch_name,
 			self.steps

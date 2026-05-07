@@ -1,6 +1,6 @@
-name: "mfs/macaroni/gnu/arm-64bit/mchroot"
+name: "vfscratch/macaroni/gnu/arm-64bit/mchroot"
 artefact_path: sources
-namespace: mfs-sources
+namespace: vfscratch-sources
 script:
 - sleep 5
 - >-
@@ -14,6 +14,6 @@ environment:
 - LUET_NOLOCK=true
 - LUET_YES=true
 image: macaroni/bootstrap-builder
-source: https://github.com/coffnix/mfs
+source: https://github.com/coffnix/vfscratch
 type: lxd
 directory: /

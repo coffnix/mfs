@@ -1,37 +1,37 @@
 #!/bin/bash
 REPOPATH="$( git rev-parse --show-toplevel )"
-export mfs_build=$1
-export mfs_arch=$2
-[ -z "$mfs_build" ] && echo "Please specify build as first argument" && exit 1
-[ -z "$mfs_arch" ] && echo "Please specify arch as second argument" && exit 1
-if [ "$mfs_build" = "gnu" ]; then
+export vfscratch_build=$1
+export vfscratch_arch=$2
+[ -z "$vfscratch_build" ] && echo "Please specify build as first argument" && exit 1
+[ -z "$vfscratch_arch" ] && echo "Please specify arch as second argument" && exit 1
+if [ "$vfscratch_build" = "gnu" ]; then
 	echo "Macaroni GNU build"
-elif [ "$mfs_build" = "musl" ]; then
+elif [ "$vfscratch_build" = "musl" ]; then
 	echo "Alkaline MUSL build"
 else
-	echo "Unknown build: $mfs_build"
+	echo "Unknown build: $vfscratch_build"
 	exit 1
 fi
-arch_yaml="$REPOPATH/profiles/$mfs_build/arches/$mfs_arch.yaml"
+arch_yaml="$REPOPATH/profiles/$vfscratch_build/arches/$vfscratch_arch.yaml"
 if [ ! -e "$arch_yaml" ]; then
 	echo "Required file $arch_yaml not found. Exiting."
 	exit 1
 fi
-export LXD_MFS_SOURCE_IMAGE="macaroni-mchroot"
+export LXD_VFSCRATCH_SOURCE_IMAGE="macaroni-mchroot"
 export EMERGE_PACKAGES="mchroot pyyaml jinja"
-export TEST_NAME="mfs-${USER}-${mfs_arch}-${mfs_build}"
+export TEST_NAME="vfscratch-${USER}-${vfscratch_arch}-${vfscratch_build}"
 export LXD_INTERFACE=${LXD_INTERFACE:-eth0}
 export EMERGE_JOBS=${EMERGE_JOBS:-10}
 export LXD_LAUNCH_EXTRA_ARGS=${LXD_LAUNCH_EXTRA_ARGS:--p default -n lxdbr0}
 if [ -n "$MAKEOPTS" ]; then
 	export MAKEOPTS
 fi
-if ! lxc image info $LXD_MFS_SOURCE_IMAGE >/dev/null 2>&1; then
-	echo "Source image $LXD_MFS_SOURCE_IMAGE does not exist. Exiting."
+if ! lxc image info $LXD_VFSCRATCH_SOURCE_IMAGE >/dev/null 2>&1; then
+	echo "Source image $LXD_VFSCRATCH_SOURCE_IMAGE does not exist. Exiting."
 fi
 CNAME=${TEST_NAME}-test
 echo "Building in container $CNAME"
-echo "This script will use the current branch and local uncommmitted changes in your working mfs repo."
+echo "This script will use the current branch and local uncommmitted changes in your working vfscratch repo."
 # clean up previous instance if it exists...
 if lxc info $CNAME >/dev/null 2>&1; then
 	lxc stop --force $CNAME > /dev/null 2>&1
@@ -52,7 +52,7 @@ network_test() {
 	fi
 }
 cur_step=""
-create="$LXD_MFS_SOURCE_IMAGE"
+create="$LXD_VFSCRATCH_SOURCE_IMAGE"
 for step in mchroot tools cross_tools; do
 	if [ -n "$(lxc image list -cl -f csv | grep $CNAME-$step)" ]; then
 		echo -n "A snapshot image exists for step $step:"
@@ -70,7 +70,7 @@ for step in mchroot tools cross_tools; do
 		fi
 	fi
 done
-if [ "$mfs_build" == "gnu" ]; then
+if [ "$vfscratch_build" == "gnu" ]; then
 	last_step="stage1"
 else
 	last_step="mchroot"
@@ -121,32 +121,32 @@ if [ -n "$EMERGE_PACKAGES" ]; then
 fi
 
 # pack up current git repo and any local changes, push into container:
-install -m 0777 -d /var/tmp/mfs
-export tmp_path=/var/tmp/mfs/$$
+install -m 0777 -d /var/tmp/vfscratch
+export tmp_path=/var/tmp/vfscratch/$$
 install -m 0755 -d $tmp_path
-rm -rf $tmp_path/mfs-repo $tmp_path/mfs-repo.tar.gz $tmp_path/mfs.patch
+rm -rf $tmp_path/vfscratch-repo $tmp_path/vfscratch-repo.tar.gz $tmp_path/vfscratch.patch
 # grab all local changes and all uncommitted (staged) files:
-( cd $REPOPATH; git diff HEAD > $tmp_path/mfs.patch )
+( cd $REPOPATH; git diff HEAD > $tmp_path/vfscratch.patch )
 
-( cd $tmp_path; git clone $REPOPATH $tmp_path/mfs-repo )
+( cd $tmp_path; git clone $REPOPATH $tmp_path/vfscratch-repo )
 
 # pass local calling parameters to inside of container:
-cat > $tmp_path/mfs-repo/env.sh << EOF
-export mfs_arch=$mfs_arch
-export mfs_build=$mfs_build
+cat > $tmp_path/vfscratch-repo/env.sh << EOF
+export vfscratch_arch=$vfscratch_arch
+export vfscratch_build=$vfscratch_build
 EOF
 
-if [ -e $tmp_path/mfs.patch ]; then
-	( cd $tmp_path/mfs-repo; cat $tmp_path/mfs.patch | patch -p1 )
+if [ -e $tmp_path/vfscratch.patch ]; then
+	( cd $tmp_path/vfscratch-repo; cat $tmp_path/vfscratch.patch | patch -p1 )
 fi
-tar czvf $tmp_path/mfs-repo.tar.gz -C $tmp_path mfs-repo || die
-lxc file push $tmp_path/mfs-repo.tar.gz $CNAME/var/tmp/ || die "no pushy"
-lxc exec $CNAME chmod -f 644 /var/tmp/mfs-repo.tar.gz
-lxc exec $CNAME chmod -f 644 /var/tmp/mfs.patch
+tar czvf $tmp_path/vfscratch-repo.tar.gz -C $tmp_path vfscratch-repo || die
+lxc file push $tmp_path/vfscratch-repo.tar.gz $CNAME/var/tmp/ || die "no pushy"
+lxc exec $CNAME chmod -f 644 /var/tmp/vfscratch-repo.tar.gz
+lxc exec $CNAME chmod -f 644 /var/tmp/vfscratch.patch
 # unpack repo --
-lxc exec $CNAME -- tar xvf /var/tmp/mfs-repo.tar.gz || die "unpack fail"
+lxc exec $CNAME -- tar xvf /var/tmp/vfscratch-repo.tar.gz || die "unpack fail"
 for step in $do_steps; do
-	lxc exec $CNAME -- /root/mfs-repo/ci/lxd-baremetal/run.sh $step
+	lxc exec $CNAME -- /root/vfscratch-repo/ci/lxd-baremetal/run.sh $step
 	if [ $? -ne 0 ]; then
 		echo "Test failure: step $step failed."
 		exit 1

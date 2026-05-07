@@ -7,7 +7,7 @@ if os.path.exists(gitpath):
 	# run from git repo
 	sys.path.append(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), ".."))
 
-from mfs.builder import Builder
+from vfscratch.builder import Builder
 
 if __name__ == "__main__":
 	if "CLFS" not in os.environ:
