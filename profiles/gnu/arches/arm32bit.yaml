@@ -1,0 +1,8 @@
+arch:
+  cflags: '-march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O2 -pipe'
+  arch: arm
+  gnu_arch: arm
+  target: armv7a-unknown-linux-gnueabihf
+  ego_arch: arm-32bit
+  ego_subarch: armv7a_hardfp
+  bits: 32

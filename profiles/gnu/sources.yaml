@@ -114,21 +114,10 @@ sources:
           url: https://github.com/gentoo/sandbox/archive/refs/tags/v{version}.tar.gz
       - portage:
           version: 3.0.78
-          srcdir: portage-portage-3.0.78
-          url: https://github.com/gentoo/portage/archive/refs/tags/portage-{version}.tar.gz
-          patches:
-            - portage-2.4.3-remove-gentoo-repos-conf.patch
-            - portage-2.3.68-change-global-paths.patch
-            - portage-2.3.41-ebuild-nodie.patch
-            - portage-2.3.68-set-backtracking-to-6.patch
-            - portage-3.0.9-enhanced-metadata.patch
-            - portage-2.3.78-static-libs-belong-where-I-put-them.patch
-            - portage-2.3.78-module-rebuild.patch
-            - portage-3.0.9-add-repodir-variable.patch
-            - portage-3.0.14-allow-matches-in-package-updates.patch
-            - portage-3.0.14-track-and-deny-keywords-r1.patch
-            - portage-3.0.14-aliases-name-check.patch
-            - portage-3.0.14-cdn-feature-ignore-mirror.patch
+          #srcdir: portage-portage-3.0.78
+          #url: https://github.com/gentoo/portage/archive/refs/tags/portage-{version}.tar.gz
+          package: portage-4.0.2.tbz2
       - ego:
-          version: 2.8.7
-          url: https://github.com/funtoo-src/ego/archive/refs/tags/{version}.tar.gz
+          version: 2.8.8_pre20240817-r1
+          #url: https://github.com/funtoo-src/ego/archive/refs/tags/{version}.tar.gz
+          package: ego-2.8.8_pre20240817-r1.tbz2
