@@ -94,7 +94,9 @@ tools:
         --enable-threads
         make
         make DESTDIR=${CLFS} install-bfd
-        make DESTDIR=${CLFS} install
+        make DESTDIR=${CLFS} -C gas install
+        make DESTDIR=${CLFS} -C ld install
+        make DESTDIR=${CLFS} -C binutils install
     - gcc: |
         unset CC CXX CFLAGS CXXFLAGS CPPFLAGS LDFLAGS AR AS LD NM RANLIB STRIP
         export CC_FOR_BUILD="gcc"
@@ -110,10 +112,10 @@ tools:
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
         ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
-        install -d /usr/i686-pc-linux-gnu
-        ln -sfn ${CLFS}/usr/include /usr/i686-pc-linux-gnu/include
-        ln -sfn ${CLFS}/usr/include /usr/i686-pc-linux-gnu/sys-include
-        ln -sfn ${CLFS}/usr/lib /usr/i686-pc-linux-gnu/lib
+        install -d /usr/${CLFS_TARGET}
+        ln -sfn ${CLFS}/usr/include /usr/${CLFS_TARGET}/include
+        ln -sfn ${CLFS}/usr/include /usr/${CLFS_TARGET}/sys-include
+        ln -sfn ${CLFS}/usr/lib /usr/${CLFS_TARGET}/lib
         mkdir gcc-build && cd gcc-build
         ../configure \
         {%- if arch == "powerpc" %}

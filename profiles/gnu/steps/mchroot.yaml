@@ -2,6 +2,26 @@ mchroot:
   defaults:
     template: mchroot.tmpl
   steps:
+    - binutils: |
+        mkdir binutils-build && cd binutils-build
+        ../configure \
+        --prefix=/usr \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET} \
+        --target=${CLFS_TARGET} \
+        --enable-ld=default \
+        --disable-nls \
+        --enable-shared \
+        --enable-64-bit-bfd \
+        --disable-multilib \
+        --enable-plugins \
+        --disable-gold \
+        --disable-gprofng \
+        --with-system-zlib \
+        --enable-threads
+        make
+        make install-bfd
+        make install
     - linux: |
         test -e /usr/include/linux/version.h
         make INSTALL_HDR_PATH=/usr headers_install
