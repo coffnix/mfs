@@ -145,7 +145,139 @@ tools:
         AS_FOR_TARGET="${CLFS_TARGET}-as" \
         LD_FOR_TARGET="${CLFS_TARGET}-ld"
         make DESTDIR=${CLFS} install
+        echo "Limpando binários host aarch64 contaminados..."
+
+        find ${CLFS}/usr/bin -maxdepth 1 -type f | while read f; do
+          case "$(file -b "$f")" in
+            *"ARM aarch64"*)
+              echo "Removendo binário host contaminado: $f"
+              rm -f "$f"
+              ;;
+          esac
+        done
+
+        find ${CLFS}/usr/lib* -type f 2>/dev/null | while read f; do
+          case "$(file -b "$f")" in
+            *"ARM aarch64"*)
+              echo "Removendo biblioteca host contaminada: $f"
+              rm -f "$f"
+              ;;
+          esac
+        done
+
+        rm -rf ${CLFS}/usr/lib64
+
+        find ${CLFS}/usr -type f -exec file {} \; | grep -E 'ELF .*ARM aarch64|interpreter /lib/ld-linux-aarch64' && {
+          echo "Ainda existem binários aarch64 contaminados dentro do rootfs" >&2
+          exit 1
+        } || true
         install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
+    - gcc-final: |
+        export LIBSTDCXX_INCLUDE="${CLFS}/usr/include/c++/${GCC_VERSION}"
+        export LIBSTDCXX_TARGET_INCLUDE="${CLFS}/usr/include/c++/${GCC_VERSION}/${CLFS_TARGET}"
+        export LIBSUPCXX_INCLUDE="${CLFS}/build/gcc-${GCC_VERSION}/libstdc++-v3/libsupc++"
+        export TARGET_CXX_WITH_HEADERS="${CLFS_TARGET}-g++ ${CLFS_CFLAGS} -isystem ${LIBSTDCXX_INCLUDE} -isystem ${LIBSTDCXX_TARGET_INCLUDE} -isystem ${LIBSUPCXX_INCLUDE}"
+
+        export CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}"
+        export CXX="${TARGET_CXX_WITH_HEADERS}"
+        export AR="${CLFS_TARGET}-ar"
+        export AS="${CLFS_TARGET}-as"
+        export LD="${CLFS_TARGET}-ld"
+        export NM="${CLFS_TARGET}-nm"
+        export RANLIB="${CLFS_TARGET}-ranlib"
+        export STRIP="${CLFS_TARGET}-strip"
+
+        export CC_FOR_BUILD="gcc"
+        export CXX_FOR_BUILD="g++"
+        export AR_FOR_BUILD="ar"
+        export AS_FOR_BUILD="as"
+        export LD_FOR_BUILD="ld"
+        export NM_FOR_BUILD="nm"
+        export RANLIB_FOR_BUILD="ranlib"
+        export CFLAGS_FOR_BUILD="-O2 -pipe"
+        export CXXFLAGS_FOR_BUILD="-O2 -pipe"
+        export CPPFLAGS_FOR_BUILD=""
+
+        export CC_FOR_TARGET="${CLFS_TARGET}-gcc"
+        export CXX_FOR_TARGET="${CLFS_TARGET}-g++"
+        export CXXFLAGS_FOR_TARGET="${CLFS_CFLAGS}"
+        export RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++"
+
+        export CPPFLAGS=""
+        export LDFLAGS="-L${CLFS}/usr/lib -L${CLFS}/lib -Wl,-rpath-link=${CLFS}/usr/lib -Wl,-rpath-link=${CLFS}/lib"
+
+        install -d ${CLFS}/usr/${CLFS_TARGET}
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
+        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
+        ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
+
+        rm -rf gcc-build
+        mkdir gcc-build
+        cd gcc-build
+
+        ../configure \
+        {%- if arch == "powerpc" %}
+        --with-abi=elfv2 \
+        --enable-secureplt \
+        --enable-decimal-float=no \
+        {%- endif %}
+        --prefix=/usr \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET} \
+        --target=${CLFS_TARGET} \
+        --with-build-sysroot=${CLFS} \
+        --with-local-prefix=/usr \
+        --with-native-system-header-dir=/usr/include \
+        --disable-multilib \
+        --enable-languages=c,c++ \
+        --enable-shared \
+        --enable-threads=posix \
+        --enable-__cxa_atexit \
+        --enable-clocale=gnu \
+        --enable-initfini-array \
+        --enable-install-libiberty \
+        --enable-linker-build-id \
+        --disable-libstdcxx-pch \
+        --disable-libsanitizer \
+        --disable-bootstrap \
+        --with-system-zlib \
+        --with-gmp=${CLFS}/usr \
+        --with-mpfr=${CLFS}/usr \
+        --with-mpc=${CLFS}/usr
+
+        make \
+        CXX="${TARGET_CXX_WITH_HEADERS}" \
+        CPPFLAGS_FOR_BUILD="" \
+        CFLAGS_FOR_BUILD="-O2 -pipe" \
+        CXX_FOR_BUILD="g++" \
+        CXXFLAGS_FOR_BUILD="-O2 -pipe" \
+        CC_FOR_TARGET="${CLFS_TARGET}-gcc" \
+        CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
+        RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
+        AS_FOR_TARGET="${CLFS_TARGET}-as" \
+        LD_FOR_TARGET="${CLFS_TARGET}-ld"
+
+        make DESTDIR=${CLFS} install
+
+        rm -f ${CLFS}/usr/bin/cpp
+        rm -f ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
+
+        for t in gcc g++ c++ gcc-ar gcc-nm gcc-ranlib; do
+          if [ -e ${CLFS}/usr/bin/${CLFS_TARGET}-${t} ]; then
+            ln -sf ${CLFS_TARGET}-${t} ${CLFS}/usr/bin/${t}
+          fi
+        done
+
+        ln -sf ${CLFS_TARGET}-gcc ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
+        ln -sf ${CLFS_TARGET}-cpp ${CLFS}/usr/bin/cpp
+
+        file ${CLFS}/usr/bin/gcc
+        file ${CLFS}/usr/bin/${CLFS_TARGET}-gcc
+        file ${CLFS}/usr/bin/cpp
+        file ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
+
+        install -d ${CLFS}/var/db/pkg/sys-devel/gcc-final-${GCC_VERSION}
+
     - ncurses: |
         sed -i -e "s/INSTALL_OPT_S=\\\"-s/& --strip-program=${STRIP}/" configure
         mkdir ncurses-build && cd ncurses-build
@@ -576,100 +708,6 @@ tools:
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/net-misc/rsync-${RSYNC_VERSION}
-    - gcc-final: |
-        export LIBSTDCXX_INCLUDE="${CLFS}/usr/include/c++/${GCC_VERSION}"
-        export LIBSTDCXX_TARGET_INCLUDE="${CLFS}/usr/include/c++/${GCC_VERSION}/${CLFS_TARGET}"
-        export LIBSUPCXX_INCLUDE="${CLFS}/build/gcc-${GCC_VERSION}/libstdc++-v3/libsupc++"
-        export TARGET_CXX_WITH_HEADERS="${CLFS_TARGET}-g++ ${CLFS_CFLAGS} -isystem ${LIBSTDCXX_INCLUDE} -isystem ${LIBSTDCXX_TARGET_INCLUDE} -isystem ${LIBSUPCXX_INCLUDE}"
-
-        export CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}"
-        export CXX="${TARGET_CXX_WITH_HEADERS}"
-        export AR="${CLFS_TARGET}-ar"
-        export AS="${CLFS_TARGET}-as"
-        export LD="${CLFS_TARGET}-ld"
-        export NM="${CLFS_TARGET}-nm"
-        export RANLIB="${CLFS_TARGET}-ranlib"
-        export STRIP="${CLFS_TARGET}-strip"
-
-        export CC_FOR_BUILD="gcc"
-        export CXX_FOR_BUILD="g++"
-        export AR_FOR_BUILD="ar"
-        export AS_FOR_BUILD="as"
-        export LD_FOR_BUILD="ld"
-        export NM_FOR_BUILD="nm"
-        export RANLIB_FOR_BUILD="ranlib"
-        export CXXFLAGS_FOR_BUILD="-O2 -pipe"
-
-        export CC_FOR_TARGET="${CLFS_TARGET}-gcc"
-        export CXX_FOR_TARGET="${CLFS_TARGET}-g++"
-        export CXXFLAGS_FOR_TARGET="${CLFS_CFLAGS}"
-        export RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++"
-
-        export CPPFLAGS=""
-        export CPPFLAGS_FOR_BUILD=""
-        export CFLAGS_FOR_BUILD="-O2 -pipe"
-        export CXXFLAGS_FOR_BUILD="-O2 -pipe"
-        export LDFLAGS="-L${CLFS}/usr/lib -L${CLFS}/lib -Wl,-rpath-link=${CLFS}/usr/lib -Wl,-rpath-link=${CLFS}/lib"
-
-        install -d ${CLFS}/usr/${CLFS_TARGET}
-        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
-        ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
-        ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
-
-        mkdir gcc-build && cd gcc-build
-
-        ../configure \
-        {%- if arch == "powerpc" %}
-        --with-abi=elfv2 \
-        --enable-secureplt \
-        --enable-decimal-float=no \
-        {%- endif %}
-        --prefix=/usr \
-        --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        --target=${CLFS_TARGET} \
-        --with-build-sysroot=${CLFS} \
-        --with-local-prefix=/usr \
-        --with-native-system-header-dir=/usr/include \
-        --disable-multilib \
-        --enable-languages=c,c++ \
-        --enable-shared \
-        --enable-threads=posix \
-        --enable-__cxa_atexit \
-        --enable-clocale=gnu \
-        --enable-initfini-array \
-        --enable-install-libiberty \
-        --enable-linker-build-id \
-        --disable-libstdcxx-pch \
-        --disable-libsanitizer \
-        --disable-bootstrap \
-        --with-system-zlib \
-        --with-gmp=${CLFS}/usr \
-        --with-mpfr=${CLFS}/usr \
-        --with-mpc=${CLFS}/usr
-
-        make \
-        CXX="${TARGET_CXX_WITH_HEADERS}" \
-        CPPFLAGS_FOR_BUILD="" \
-        CFLAGS_FOR_BUILD="-O2 -pipe" \
-        CXX_FOR_BUILD="g++" \
-        CXXFLAGS_FOR_BUILD="-O2 -pipe" \
-        CC_FOR_TARGET="${CLFS_TARGET}-gcc" \
-        CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
-        RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
-        AS_FOR_TARGET="${CLFS_TARGET}-as" \
-        LD_FOR_TARGET="${CLFS_TARGET}-ld"
-
-        make DESTDIR=${CLFS} install
-
-        for t in gcc g++ cpp c++ gcc-ar gcc-nm gcc-ranlib; do
-          if [ -e ${CLFS}/usr/bin/${CLFS_TARGET}-${t} ]; then
-            ln -sf ${CLFS_TARGET}-${t} ${CLFS}/usr/bin/${t}
-          fi
-        done
-
-        file ${CLFS}/usr/bin/gcc
-        install -d ${CLFS}/var/db/pkg/sys-devel/gcc-final-${GCC_VERSION}
     - none-final: |
         cat > ${CLFS}/etc/profile << "PROFILE_EOF"
         # Macaroni from Scratch /etc/profile for login shells in the temporary environment.
