@@ -286,6 +286,7 @@ mchroot:
         [global]
         release = mark-31
         python_kit_profile = mark
+        sync_base_url = https://github.com/macaroni-os/{repo}
         EGO_EOF
 
         install -d /var/db/pkg/app-admin/ego-${EGO_VERSION}
