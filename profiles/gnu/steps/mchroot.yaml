@@ -417,6 +417,8 @@ mchroot:
         /sbin/ldconfig
         /usr/sbin/env-update
         source /etc/profile
+        export CONFIG_PROTECT="-*"
+        export FEATURES="-pid-sandbox nodoc noman noinfo"
         test -e /etc/ld.so.conf
         test -e /etc/ld.so.cache
 
