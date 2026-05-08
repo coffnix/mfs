@@ -42,6 +42,37 @@ LXD Setup
 
 =========
 
+Before launching the isolated LXD bootstrap environment, you must first clone the VFScratch repository, fetch all required sources and metadata, build the complete cross-compilation toolchain for the target architecture, generate the temporary bootstrap tools environment, create the mchroot build root, and finally generate the initial stage1 filesystem that will later be used by the containerized bootstrap process.
+::
+  $ git clone https://github.com/coffnix/VFScratch.git
+
+  $ cd ~/VFScratch
+
+  $ export CLFS=~/VFScratch
+  $ bin/sourcer gnu fetch
+
+build ARM 32-bit cross toolchain
+::
+  $ export CLFS=~/VFScratch
+  $ bin/builder gnu arm-32bit cross_tools
+
+build bootstrap host tools
+::
+  $ export CLFS=~/VFScratch
+  $ bin/builder gnu arm-32bit tools
+
+create mchroot environment
+::
+  $ export CLFS=~/VFScratch
+  $ bin/builder gnu arm-32bit mchroot
+
+generate initial stage1 filesystem
+::
+  $ export CLFS=~/VFScratch
+  $ bin/builder gnu arm-32bit stage1
+
+=========
+
 This section documents the recommended LXD-based workflow.
 
 First, configure LXD on your Linux system and ensure your containers have working network connectivity.
