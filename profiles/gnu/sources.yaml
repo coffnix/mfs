@@ -118,6 +118,7 @@ sources:
       - portage:
           version: 4.0.2
           url: https://api.github.com/repos/macaroni-os/mark-portage/tarball/refs/tags/v{version}
+          srcdir: macaroni-os-mark-portage-8e1bfa3
       - ego:
           version: 2.8.8_pre20240817
           url: https://github.com/macaroni-os/ego/archive/ddfcfe117be24c95f21f72901c252ceefa3205d7.zip

@@ -138,10 +138,26 @@ class Sourcer:
 				for in_url in self.sources[source]["sources"]:
 					url, tarball = expand_url(in_url)
 
-					out += (
-						f"cd ${{CLFS}}/build && "
-						f"tar xf ${{CLFS}}/sources/{tarball}\n"
-					)
+					if tarball.endswith(".zip"):
+						out += (
+							f"cd ${{CLFS}}/build && "
+							f"rm -rf {source}-{self.sources[source]['version']} && "
+							f"mkdir -p {source}-{self.sources[source]['version']} && "
+							f"python3 -m zipfile -e ${{CLFS}}/sources/{tarball} "
+							f"{source}-{self.sources[source]['version']} && "
+							f"firstdir=$(find {source}-{self.sources[source]['version']} "
+							f"-mindepth 1 -maxdepth 1 -type d | head -n1); "
+							f"if [ -n \"$firstdir\" ]; then "
+							f"find \"$firstdir\" -mindepth 1 -maxdepth 1 "
+							f"-exec mv -t {source}-{self.sources[source]['version']} {{}} +; "
+							f"rmdir \"$firstdir\"; "
+							f"fi\n"
+						)
+					else:
+						out += (
+							f"cd ${{CLFS}}/build && "
+							f"tar xf ${{CLFS}}/sources/{tarball}\n"
+						)
 
 					out += (
 						f"export "
