@@ -231,6 +231,7 @@ mchroot:
     - python-exec: |
         ./configure \
         --prefix=/usr \
+        --sysconfdir=/etc \
         --libdir=/usr/lib \
         --with-fallback-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
         --with-python-impls="python3"
@@ -240,7 +241,10 @@ mchroot:
 
         install -d /etc/python-exec
         sed -n -e '/^#/p' config/python-exec.conf.example > /etc/python-exec/python-exec.conf
-        echo python${PYTHON_VERSION%.*} >> /etc/python-exec/python-exec.conf
+        /usr/bin/python3 - << "PYEOF" >> /etc/python-exec/python-exec.conf
+        import sys
+        print(f"python{sys.version_info.major}.{sys.version_info.minor}")
+        PYEOF
 
         ln -sf python-exec2c /usr/bin/python
         ln -sf python-exec2c /usr/bin/python2
