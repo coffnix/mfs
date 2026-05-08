@@ -82,10 +82,11 @@ mchroot:
         --disable-gprofng \
         --without-isl \
         --with-system-zlib \
-        --enable-threads
-        make
-        make install-bfd
-        make install
+        --enable-threads \
+        MAKEINFO=true
+        make MAKEINFO=true
+        make MAKEINFO=true install-bfd
+        make MAKEINFO=true install
     - linux: |
         test -e /usr/include/linux/version.h
         make INSTALL_HDR_PATH=/usr headers_install
