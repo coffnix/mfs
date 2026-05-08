@@ -229,22 +229,26 @@ mchroot:
         ln -sf /tools/bin/pyvenv-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pyvenv
         install -d /var/db/pkg/dev-lang/python-${PYTHON_VERSION}
     - python-exec: |
+        PYTHON_REAL="$(ls /usr/bin/python3.[0-9]* | grep -v config | head -n1)"
+        PYTHON_IMPL="$("${PYTHON_REAL}" - << "PYEOF"
+        import sys
+        print(f"python{sys.version_info.major}.{sys.version_info.minor}")
+        PYEOF
+        )"
+
         ./configure \
         --prefix=/usr \
         --sysconfdir=/etc \
         --libdir=/usr/lib \
         --with-fallback-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-        --with-python-impls="python3"
+        --with-python-impls="${PYTHON_IMPL}"
 
         make
         make install
 
         install -d /etc/python-exec
         sed -n -e '/^#/p' config/python-exec.conf.example > /etc/python-exec/python-exec.conf
-        /usr/bin/python3 - << "PYEOF" >> /etc/python-exec/python-exec.conf
-        import sys
-        print(f"python{sys.version_info.major}.{sys.version_info.minor}")
-        PYEOF
+        echo "${PYTHON_IMPL}" >> /etc/python-exec/python-exec.conf
 
         ln -sf python-exec2c /usr/bin/python
         ln -sf python-exec2c /usr/bin/python2
