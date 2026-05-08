@@ -406,10 +406,12 @@ mchroot:
         epro arch arm-32bit
         epro subarch armv7a_vfpv3_hardfp
         {% endif %}
+        ego profile mix-in -stage1
         ego profile mix-in +stage1
         # This allows all files in /etc/ to be directly overwritten.
         export CONFIG_PROTECT="-*"
         # This will ensure base files for env-update are in place. -build since fs already exists.
+        GIT_SSL_NO_VERIFY=true ego sync
         USE="-build" emerge --nodeps baselayout
         /sbin/ldconfig
         /usr/sbin/env-update
