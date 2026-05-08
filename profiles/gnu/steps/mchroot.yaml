@@ -292,10 +292,49 @@ mchroot:
         portage::250:portage
         GROUP_EOF
     - portage: |
+        sed -e 's:^VERSION = "HEAD"$:VERSION = "'${PORTAGE_VERSION}'":' -i lib/portage/__init__.py
+
+        printf "[build_ext]\nportage-ext-modules=true\n" >> setup.cfg
+
+        sed -e '/^sync-rsync-verify-metamanifest/s|yes|no|' \
+            -e '/^sync-webrsync-verify-signature/s|yes|no|' \
+            -i cnf/repos.conf
+
+        /usr/bin/python3 setup.py build
+        /usr/bin/python3 setup.py install \
+          --system-prefix=/usr \
+          --bindir=/usr/lib/python-exec/python \
+          --sbindir=/usr/lib/python-exec/python \
+          --docdir=/usr/share/doc/portage-${PORTAGE_VERSION} \
+          --htmldir=/usr/share/doc/portage-${PORTAGE_VERSION}/html \
+          --portage-bindir=/usr/lib/portage/python \
+          --sysconfdir=/etc
+
+        install -d /usr/sbin
+        for target in archive-conf dispatch-conf emaint env-update etc-update fixpackages regenworld; do
+          if [ -e /usr/lib/python-exec/python/${target} ]; then
+            mv /usr/lib/python-exec/python/${target} /usr/sbin/${target}
+          fi
+        done
+
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/ebuild
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/egencache
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/emerge
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/emirrordist
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/portageq
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/quickpkg
+
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/archive-conf
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/dispatch-conf
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/emaint
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/env-update
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/etc-update
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/fixpackages
+        ln -sf ../lib/python-exec/python-exec2 /usr/sbin/regenworld
+
         rm -f /usr/share/portage/config/repos.conf
 
         install -d /etc/portage
-
         cat > /etc/portage/make.conf << "MKCF_EOF"
         FEATURES="-pid-sandbox"
         FETCHCOMMAND="wget --no-check-certificate -t 3 -T 60 --passive-ftp -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""
@@ -306,7 +345,6 @@ mchroot:
         ln -sf portage/make.conf /etc/make.conf
 
         install -d /etc/portage/make.profile
-
         cat > /etc/portage/make.profile/parent << "MKP_EOF"
         core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}
         core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
@@ -315,8 +353,35 @@ mchroot:
         core-kit:macaroni/1.0/linux-gnu/mix-ins/stage1
         MKP_EOF
 
+        install -d /var/log/portage/elog
+        chown portage:portage /var/log/portage /var/log/portage/elog 2>/dev/null || true
+        chmod g+s,ug+rwx /var/log/portage /var/log/portage/elog 2>/dev/null || true
+
         install -d /var/db/pkg/sys-apps/portage-${PORTAGE_VERSION}
     - ego: |
+        install -d /usr/share/ego/modules
+        install -d /usr/share/ego/modules-info
+        install -d /usr/share/ego/python
+        install -d /usr/bin
+        install -d /sbin
+        install -d /etc
+
+        cp modules/*.ego /usr/share/ego/modules/
+        rm -f /usr/share/ego/modules/upgrade*
+
+        cp modules-info/* /usr/share/ego/modules-info/
+        rm -f /usr/share/ego/modules-info/upgrade*
+
+        cp -r python/* /usr/share/ego/python/
+        rm -rf /usr/share/ego/python/test
+
+        install -m 0755 ego /usr/bin/ego
+        ln -sf ego /usr/bin/epro
+        ln -sf ego /usr/bin/edoc
+        ln -sf ../usr/bin/ego /sbin/boot-update
+
+        cp etc/*.conf* /etc/
+
         cat > /etc/ego.conf << "EGO_EOF"
         [global]
         release = mark-31
