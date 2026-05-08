@@ -56,9 +56,6 @@ mchroot:
         ln -sf ${CLFS_TARGET}-gcc-ranlib /usr/bin/gcc-ranlib
         ln -sf ${CLFS_TARGET}-gcc /usr/bin/${CLFS_TARGET}-cpp
         ln -sf ${CLFS_TARGET}-cpp /usr/bin/cpp
-        for t in ar as ld ld.bfd nm ranlib strip objcopy objdump readelf size strings addr2line c++filt elfedit; do
-        [ -x "/usr/bin/$t" ] && ln -sf "$t" "/usr/bin/${CLFS_TARGET}-$t"
-        done
 
         file /usr/bin/gcc
         file /usr/bin/g++
@@ -90,6 +87,9 @@ mchroot:
         make MAKEINFO=true
         make MAKEINFO=true install-bfd
         make MAKEINFO=true install
+        for t in ar as ld ld.bfd nm ranlib strip objcopy objdump readelf size strings addr2line c++filt elfedit; do
+          [ -x "/usr/bin/$t" ] && ln -sf "$t" "/usr/bin/${CLFS_TARGET}-$t"
+        done
     - linux: |
         test -e /usr/include/linux/version.h
         make INSTALL_HDR_PATH=/usr headers_install
