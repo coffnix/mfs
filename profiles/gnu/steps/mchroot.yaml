@@ -69,7 +69,7 @@ mchroot:
         mkdir binutils-build && cd binutils-build
         ../configure \
         --prefix=/usr \
-        --build=${CLFS_HOST} \
+        --build=${CLFS_TARGET} \
         --host=${CLFS_TARGET} \
         --target=${CLFS_TARGET} \
         --enable-ld=default \
@@ -80,6 +80,7 @@ mchroot:
         --enable-plugins \
         --disable-gold \
         --disable-gprofng \
+        --without-isl \
         --with-system-zlib \
         --enable-threads
         make

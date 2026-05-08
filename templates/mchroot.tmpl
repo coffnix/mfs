@@ -16,7 +16,7 @@ set -x
 umask 022
 {{unpack}}
 export CLFS_TARGET={{target}}
-export CLFS_HOST={{host}}
+export CLFS_HOST={{target}}
 export CLFS_CFLAGS="{{cflags}}"
 export BOOTSTRAP_RAP="yes"
 export LC_ALL=POSIX
