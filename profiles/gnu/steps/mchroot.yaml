@@ -114,6 +114,14 @@ mchroot:
         make
         make install
         install -d /var/db/pkg/dev-lang/perl-${PERL_VERSION}
+    - texinfo: |
+        ./configure \
+        --prefix=/usr
+
+        make
+        make install
+
+        install -d /var/db/pkg/sys-apps/texinfo-${TEXINFO_VERSION}
     - autoconf: |
         ./configure \
         --prefix=/usr
@@ -131,12 +139,38 @@ mchroot:
         make
         make install
     - openssl: |
-        ./config --prefix=/usr \
+        CARCH=${CLFS_TARGET%%-*}
+
+        case "${CARCH}" in
+          aarch64*)    OPENSSL_TARGET="linux-aarch64" ;;
+          arm*)        OPENSSL_TARGET="linux-armv4" ;;
+          mips64*)     OPENSSL_TARGET="linux64-mips64" ;;
+          mips*)       OPENSSL_TARGET="linux-mips32" ;;
+          powerpc64le*) OPENSSL_TARGET="linux-ppc64le" ;;
+          powerpc64*)  OPENSSL_TARGET="linux-ppc64" ;;
+          powerpc*)    OPENSSL_TARGET="linux-ppc" ;;
+          i?86)        OPENSSL_TARGET="linux-elf" ;;
+          x86_64*)     OPENSSL_TARGET="linux-x86_64" ;;
+          s390x*)      OPENSSL_TARGET="linux64-s390x" ;;
+          riscv64*)    OPENSSL_TARGET="linux64-riscv64" ;;
+          loongarch64*) OPENSSL_TARGET="linux64-loongarch64" ;;
+          *)           OPENSSL_TARGET="linux-generic32" ;;
+        esac
+
+        perl ./Configure \
+        ${OPENSSL_TARGET} \
+        --prefix=/usr \
         --openssldir=/etc/ssl \
+        --libdir=lib \
         shared \
-        zlib-dynamic
+        threads \
+        zlib-dynamic \
+        no-tests \
+        ${CLFS_CFLAGS}
+
         make
         make install
+
         install -d /var/db/pkg/dev-libs/openssl-${OPENSSL_VERSION}
     - wget: |
         ./configure \
@@ -198,28 +232,27 @@ mchroot:
         ./configure \
         --prefix=/usr \
         --libdir=/usr/lib \
-        --sysconfdir=/etc \
-        --localstatedir=/var/lib \
         --with-fallback-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-        --with-python-impls="python3.10"
+        --with-python-impls="python3"
 
         make
         make install
 
         install -d /etc/python-exec
         sed -n -e '/^#/p' config/python-exec.conf.example > /etc/python-exec/python-exec.conf
-        echo python3.10 >> /etc/python-exec/python-exec.conf
+        echo python3 >> /etc/python-exec/python-exec.conf
 
         ln -sf python-exec2c /usr/bin/python
         ln -sf python-exec2c /usr/bin/python2
         ln -sf python-exec2c /usr/bin/python3
 
-        for f in python-config python2-config python3-config 2to3 idle pydoc pyvenv; do
-          ln -sf ../lib/python-exec/python-exec2 /usr/bin/${f}
-        done
-
-        test -x /usr/lib/python-exec/python-exec2
-        test -x /usr/bin/python-exec2c
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/python-config
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/python2-config
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/python3-config
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/2to3
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/idle
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/pydoc
+        ln -sf ../lib/python-exec/python-exec2 /usr/bin/pyvenv
 
         install -d /var/db/pkg/dev-lang/python-exec-${PYTHON_EXEC_VERSION}
     - git: |
