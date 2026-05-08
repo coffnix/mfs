@@ -446,6 +446,7 @@ mchroot:
         # util-linux officially, glib will think libmount is installed but glib meson configure will fail
         # when the lib isn't found:
 
+        export GIT_SSL_NO_VERIFY=true
         emerge --jobs=3 app-misc/ca-certificates
         emerge --jobs=3 util-linux
         emerge --jobs=3 ncurses python
