@@ -29,6 +29,7 @@ mchroot:
         --with-native-system-header-dir=/usr/include \
         --disable-multilib \
         --enable-languages=c,c++ \
+        --without-isl \
         --enable-shared \
         --enable-threads=posix \
         --enable-__cxa_atexit \
