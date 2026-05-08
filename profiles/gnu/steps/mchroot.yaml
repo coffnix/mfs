@@ -240,7 +240,7 @@ mchroot:
 
         install -d /etc/python-exec
         sed -n -e '/^#/p' config/python-exec.conf.example > /etc/python-exec/python-exec.conf
-        echo python3 >> /etc/python-exec/python-exec.conf
+        echo python3.10 >> /etc/python-exec/python-exec.conf
 
         ln -sf python-exec2c /usr/bin/python
         ln -sf python-exec2c /usr/bin/python2
