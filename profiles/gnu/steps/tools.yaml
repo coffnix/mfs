@@ -195,6 +195,7 @@ tools:
         --enable-decimal-float=no \
         {%- endif %}
         --prefix=/usr \
+        --libdir=/usr/lib \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
         --target=${CLFS_TARGET} \
@@ -234,24 +235,30 @@ tools:
         make DESTDIR=${CLFS} install
 
         rm -f ${CLFS}/usr/bin/cpp
-        rm -f ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
+        rm -f ${CLFS}/usr/bin/gcc
+        rm -f ${CLFS}/usr/bin/g++
+        rm -f ${CLFS}/usr/bin/c++
+        rm -f ${CLFS}/usr/bin/gcc-ar
+        rm -f ${CLFS}/usr/bin/gcc-nm
+        rm -f ${CLFS}/usr/bin/gcc-ranlib
 
-        for t in gcc g++ c++ gcc-ar gcc-nm gcc-ranlib; do
-          if [ -e ${CLFS}/usr/bin/${CLFS_TARGET}-${t} ]; then
-            ln -sf ${CLFS_TARGET}-${t} ${CLFS}/usr/bin/${t}
-          fi
-        done
-
+        ln -sf ${CLFS_TARGET}-gcc ${CLFS}/usr/bin/gcc
+        ln -sf ${CLFS_TARGET}-g++ ${CLFS}/usr/bin/g++
+        ln -sf ${CLFS_TARGET}-c++ ${CLFS}/usr/bin/c++
+        ln -sf ${CLFS_TARGET}-gcc-ar ${CLFS}/usr/bin/gcc-ar
+        ln -sf ${CLFS_TARGET}-gcc-nm ${CLFS}/usr/bin/gcc-nm
+        ln -sf ${CLFS_TARGET}-gcc-ranlib ${CLFS}/usr/bin/gcc-ranlib
         ln -sf ${CLFS_TARGET}-gcc ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
         ln -sf ${CLFS_TARGET}-cpp ${CLFS}/usr/bin/cpp
 
         file ${CLFS}/usr/bin/gcc
         file ${CLFS}/usr/bin/${CLFS_TARGET}-gcc
-        file ${CLFS}/usr/bin/cpp
-        file ${CLFS}/usr/bin/${CLFS_TARGET}-cpp
+        file ${CLFS}/usr/bin/g++
+        file ${CLFS}/usr/bin/${CLFS_TARGET}-g++
+        file ${CLFS}/usr/bin/${CLFS_TARGET}-gcov
+        file ${CLFS}/usr/bin/${CLFS_TARGET}-lto-dump
 
-        install -d ${CLFS}/var/db/pkg/sys-devel/gcc-final-${GCC_VERSION}
-
+        install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
     - ncurses: |
         sed -i -e "s/INSTALL_OPT_S=\\\"-s/& --strip-program=${STRIP}/" configure
         mkdir ncurses-build && cd ncurses-build
@@ -336,6 +343,10 @@ tools:
         Makefile
         make CC="${CC}" AR="${AR}" RANLIB="${RANLIB}"
         make PREFIX=${CLFS}/usr install
+        ln -sfn bzgrep ${CLFS}/usr/bin/bzegrep
+        ln -sfn bzgrep ${CLFS}/usr/bin/bzfgrep
+        ln -sfn bzmore ${CLFS}/usr/bin/bzless
+        ln -sfn bzdiff ${CLFS}/usr/bin/bzcmp
         install -d ${CLFS}/var/db/pkg/app-arch/bzip2-${BZIP2_VERSION}
     - check: |
         ./configure \
@@ -601,7 +612,7 @@ tools:
         ln -sf tar ${CLFS}/usr/bin/gtar
         install -d ${CLFS}/var/db/pkg/app-arch/tar-${TAR_VERSION}
     - zstd: |
-          make
+          make CC="${CC}" AR="${AR}" RANLIB="${RANLIB}"
           make PREFIX=/usr LIBDIR=/usr/lib DESTDIR=${CLFS} install
           install -d ${CLFS}/var/db/pkg/app-arch/zstd-${ZSTD_VERSION}
     - texinfo: |
