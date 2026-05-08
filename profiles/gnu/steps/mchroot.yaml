@@ -82,8 +82,7 @@ mchroot:
         --disable-gprofng \
         --without-isl \
         --with-system-zlib \
-        --enable-threads \
-        MAKEINFO=true
+        --enable-threads
         make MAKEINFO=true
         make MAKEINFO=true install-bfd
         make MAKEINFO=true install
