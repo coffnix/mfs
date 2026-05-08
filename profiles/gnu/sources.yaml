@@ -112,6 +112,9 @@ sources:
       - sandbox:
           version: 2.46
           url: https://github.com/gentoo/sandbox/archive/refs/tags/v{version}.tar.gz
+      - python-exec:
+          version: 2.4.10
+          url: https://github.com/projg2/python-exec/releases/download/v{version}/python-exec-{version}.tar.bz2
       - portage:
           version: 3.0.78
           #srcdir: portage-portage-3.0.78

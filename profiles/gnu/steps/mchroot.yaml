@@ -2,6 +2,68 @@ mchroot:
   defaults:
     template: mchroot.tmpl
   steps:
+    - gcc-final: |
+        export CC="gcc ${CLFS_CFLAGS}"
+        export CXX="g++ ${CLFS_CFLAGS}"
+        export CFLAGS="${CLFS_CFLAGS}"
+        export CXXFLAGS="${CLFS_CFLAGS}"
+        export CPPFLAGS=""
+        export LDFLAGS=""
+
+        rm -rf gcc-build
+        mkdir gcc-build
+        cd gcc-build
+
+        ../configure \
+        {%- if arch == "powerpc" %}
+        --with-abi=elfv2 \
+        --enable-secureplt \
+        --enable-decimal-float=no \
+        {%- endif %}
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --build=${CLFS_TARGET} \
+        --host=${CLFS_TARGET} \
+        --target=${CLFS_TARGET} \
+        --with-local-prefix=/usr \
+        --with-native-system-header-dir=/usr/include \
+        --disable-multilib \
+        --enable-languages=c,c++ \
+        --enable-shared \
+        --enable-threads=posix \
+        --enable-__cxa_atexit \
+        --enable-clocale=gnu \
+        --enable-initfini-array \
+        --enable-install-libiberty \
+        --enable-linker-build-id \
+        --disable-libstdcxx-pch \
+        --disable-libsanitizer \
+        --disable-bootstrap \
+        --with-system-zlib \
+        --with-gmp=/usr \
+        --with-mpfr=/usr \
+        --with-mpc=/usr
+
+        make
+        make install
+
+        ln -sf ${CLFS_TARGET}-gcc /usr/bin/gcc
+        ln -sf ${CLFS_TARGET}-g++ /usr/bin/g++
+        ln -sf ${CLFS_TARGET}-c++ /usr/bin/c++
+        ln -sf ${CLFS_TARGET}-gcc-ar /usr/bin/gcc-ar
+        ln -sf ${CLFS_TARGET}-gcc-nm /usr/bin/gcc-nm
+        ln -sf ${CLFS_TARGET}-gcc-ranlib /usr/bin/gcc-ranlib
+        ln -sf ${CLFS_TARGET}-gcc /usr/bin/${CLFS_TARGET}-cpp
+        ln -sf ${CLFS_TARGET}-cpp /usr/bin/cpp
+
+        file /usr/bin/gcc
+        file /usr/bin/g++
+        file /usr/bin/${CLFS_TARGET}-gcc
+        file /usr/bin/${CLFS_TARGET}-g++
+        file /usr/bin/${CLFS_TARGET}-gcov
+        file /usr/bin/${CLFS_TARGET}-lto-dump
+
+        install -d /var/db/pkg/sys-devel/gcc-${GCC_VERSION}
     - binutils: |
         mkdir binutils-build && cd binutils-build
         ../configure \
@@ -129,6 +191,34 @@ mchroot:
         ln -sf /tools/bin/pydoc${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pydoc
         ln -sf /tools/bin/pyvenv-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pyvenv
         install -d /var/db/pkg/dev-lang/python-${PYTHON_VERSION}
+    - python-exec: |
+        ./configure \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --sysconfdir=/etc \
+        --localstatedir=/var/lib \
+        --with-fallback-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        --with-python-impls="python3.10"
+
+        make
+        make install
+
+        install -d /etc/python-exec
+        sed -n -e '/^#/p' config/python-exec.conf.example > /etc/python-exec/python-exec.conf
+        echo python3.10 >> /etc/python-exec/python-exec.conf
+
+        ln -sf python-exec2c /usr/bin/python
+        ln -sf python-exec2c /usr/bin/python2
+        ln -sf python-exec2c /usr/bin/python3
+
+        for f in python-config python2-config python3-config 2to3 idle pydoc pyvenv; do
+          ln -sf ../lib/python-exec/python-exec2 /usr/bin/${f}
+        done
+
+        test -x /usr/lib/python-exec/python-exec2
+        test -x /usr/bin/python-exec2c
+
+        install -d /var/db/pkg/dev-lang/python-exec-${PYTHON_EXEC_VERSION}
     - git: |
         ./configure \
         --prefix=/usr \
@@ -166,18 +256,21 @@ mchroot:
         portage::250:portage
         GROUP_EOF
     - portage: |
-        python3 setup.py build
-        python3 setup.py install
         rm -f /usr/share/portage/config/repos.conf
+
         install -d /etc/portage
+
         cat > /etc/portage/make.conf << "MKCF_EOF"
         FEATURES="-pid-sandbox"
         FETCHCOMMAND="wget --no-check-certificate -t 3 -T 60 --passive-ftp -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""
         RESUMECOMMAND="wget --no-check-certificate -c -t 3 -T 60 --passive-ftp -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""
         GENTOO_MIRRORS=https://direct-github.funmore.org
         MKCF_EOF
+
         ln -sf portage/make.conf /etc/make.conf
+
         install -d /etc/portage/make.profile
+
         cat > /etc/portage/make.profile/parent << "MKP_EOF"
         core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}
         core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
@@ -185,24 +278,19 @@ mchroot:
         core-kit:macaroni/1.0/linux-gnu/flavor/core
         core-kit:macaroni/1.0/linux-gnu/mix-ins/stage1
         MKP_EOF
+
         install -d /var/db/pkg/sys-apps/portage-${PORTAGE_VERSION}
     - ego: |
-        install -d /usr/share/ego
-        cp -r modules* python /usr/share/ego/
-        rm /usr/share/ego/modules*/upgrade*
-        rm -rf /usr/share/ego/python/test
-        chmod +x /usr/share/ego/modules/*.ego
-        cp ego /usr/bin/
-        ln -sf ego /usr/bin/epro
-        ln -sf ego /usr/bin/edoc
         cat > /etc/ego.conf << "EGO_EOF"
         [global]
         release = next
         sync_base_url=https://github.com/macaroni-repo/{repo}
         EGO_EOF
+
         install -d /var/db/pkg/app-admin/ego-${EGO_VERSION}
+
         GIT_SSL_NO_VERIFY=true ego sync
-    - none: |
+    - none-final: |
         export FEATURES="-pid-sandbox nodoc noman noinfo"
         export CONFIG_PROTECT="-* /etc/ego.conf"
         ego profile mix-in +stage1
