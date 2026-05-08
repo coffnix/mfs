@@ -284,8 +284,8 @@ mchroot:
     - ego: |
         cat > /etc/ego.conf << "EGO_EOF"
         [global]
-        release = next
-        sync_base_url=https://github.com/macaroni-repo/{repo}
+        release = mark-31
+        python_kit_profile = mark
         EGO_EOF
 
         install -d /var/db/pkg/app-admin/ego-${EGO_VERSION}
@@ -294,6 +294,10 @@ mchroot:
     - none-final: |
         export FEATURES="-pid-sandbox nodoc noman noinfo"
         export CONFIG_PROTECT="-* /etc/ego.conf"
+        {% if target == "armv7a-unknown-linux-gnueabihf" %}
+        epro arch arm-32bit
+        epro subarch armv7a_vfpv3_hardfp
+        {% endif %}
         ego profile mix-in +stage1
         # This allows all files in /etc/ to be directly overwritten.
         export CONFIG_PROTECT="-*"
