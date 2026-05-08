@@ -406,7 +406,7 @@ mchroot:
         export CONFIG_PROTECT="-* /etc/ego.conf"
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
         epro arch arm-32bit
-        epro subarch armv7a_vfpv3_hardfp
+        epro subarch banana-pi-a7
         {% endif %}
         epro flavor core
         ego profile mix-in -stage1
@@ -448,6 +448,11 @@ mchroot:
 
         export GIT_SSL_NO_VERIFY=true
         emerge --jobs=3 app-misc/ca-certificates
+        update-ca-certificates || true
+        cat > /etc/portage/make.conf << "MKCF_EOF2"
+        FEATURES="-pid-sandbox"
+        MKCF_EOF2
+        unset GIT_SSL_NO_VERIFY
         emerge --jobs=3 util-linux
         emerge --jobs=3 ncurses python
         emerge --jobs=3 bash gcc
