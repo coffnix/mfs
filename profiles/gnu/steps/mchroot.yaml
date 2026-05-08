@@ -451,8 +451,9 @@ mchroot:
         update-ca-certificates || true
         cat > /etc/portage/make.conf << "MKCF_EOF2"
         FEATURES="-pid-sandbox"
+        FETCHCOMMAND="wget --no-check-certificate -t 3 -T 60 --passive-ftp -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""
+        RESUMECOMMAND="wget --no-check-certificate -c -t 3 -T 60 --passive-ftp -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""
         MKCF_EOF2
-        unset GIT_SSL_NO_VERIFY
         emerge --jobs=3 util-linux
         emerge --jobs=3 ncurses python
         emerge --jobs=3 bash gcc
