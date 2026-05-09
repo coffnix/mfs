@@ -91,7 +91,7 @@ sources:
           version: 2.2.0
           url: https://distfiles.ariadne.space/pkgconf/pkgconf-{version}.tar.xz
       - python:
-          version: 3.10.17
+          version: 3.9.25
           url: https://www.python.org/ftp/python/{version}/Python-{version}.tar.xz
           srcdir: Python-{version}
       - cmake:
