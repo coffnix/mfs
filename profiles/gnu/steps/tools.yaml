@@ -78,7 +78,6 @@ tools:
         mkdir binutils-build && cd binutils-build
         ../configure \
         --prefix=/usr \
-        --libdir=/usr/lib \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
         --target=${CLFS_TARGET} \
@@ -91,11 +90,14 @@ tools:
         --enable-plugins \
         --disable-gold \
         --disable-gprofng \
+        --libdir=/usr/lib \
         --with-system-zlib \
         --enable-threads
         make
-        make DESTDIR=${CLFS} install
-        install -d ${CLFS}/var/db/pkg/sys-devel/binutils-${BINUTILS_VERSION}
+        make DESTDIR=${CLFS} install-bfd
+        make DESTDIR=${CLFS} -C gas install
+        make DESTDIR=${CLFS} -C ld install
+        make DESTDIR=${CLFS} -C binutils install
     - glibc: |
         mkdir glibc-build && cd glibc-build
         CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}" \
