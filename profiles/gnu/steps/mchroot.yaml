@@ -338,10 +338,17 @@ mchroot:
             -e '/^sync-webrsync-verify-signature/s|yes|no|' \
             -i cnf/repos.conf
 
+        PYTHON_REAL="$(ls /usr/bin/python3.[0-9]* | grep -v config | head -n1)"
+        PYTHON_IMPL="$("${PYTHON_REAL}" - << "PYEOF"
+        import sys
+        print(f"python{sys.version_info.major}.{sys.version_info.minor}")
+        PYEOF
+        )"
         /usr/bin/python3 setup.py build
         /usr/bin/python3 setup.py install \
           --system-prefix=/usr \
-          --bindir=/usr/lib/python-exec/python \
+          --bindir=/usr/lib/python-exec/${PYTHON_IMPL} \
+          --sbindir=/usr/lib/python-exec/${PYTHON_IMPL} \
           --sbindir=/usr/lib/python-exec/python \
           --docdir=/usr/share/doc/portage-${PORTAGE_VERSION} \
           --htmldir=/usr/share/doc/portage-${PORTAGE_VERSION}/html \
@@ -350,8 +357,8 @@ mchroot:
 
         install -d /usr/sbin
         for target in archive-conf dispatch-conf emaint env-update etc-update fixpackages regenworld; do
-          if [ -e /usr/lib/python-exec/python/${target} ]; then
-            mv /usr/lib/python-exec/python/${target} /usr/sbin/${target}
+          if [ -e /usr/lib/python-exec/${PYTHON_IMPL}/${target} ]; then
+            mv /usr/lib/python-exec/${PYTHON_IMPL}/${target} /usr/sbin/${target}
           fi
         done
 
