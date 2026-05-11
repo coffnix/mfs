@@ -5,11 +5,12 @@ mchroot:
     - gcc-final: |
         export CC="gcc ${CLFS_CFLAGS}"
         export CXX="g++ ${CLFS_CFLAGS}"
+        export CPP="gcc -E"
         export CFLAGS="${CLFS_CFLAGS}"
         export CXXFLAGS="${CLFS_CFLAGS}"
         export CPPFLAGS=""
         export LDFLAGS=""
-
+        
         rm -rf gcc-build
         mkdir gcc-build
         cd gcc-build
@@ -45,7 +46,10 @@ mchroot:
         --with-mpfr=/usr \
         --with-mpc=/usr
 
-        make
+        make \
+        CPP="cpp" \
+        CC="gcc ${CLFS_CFLAGS}" \
+        CXX="g++ ${CLFS_CFLAGS}"
         make install
 
         ln -sf ${CLFS_TARGET}-gcc /usr/bin/gcc
