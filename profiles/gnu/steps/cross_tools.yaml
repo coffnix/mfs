@@ -87,7 +87,6 @@ cross_tools:
           --with-mpfr=${CLFS}/cross-tools
         make
         make install
-
     - gcc: |
         mkdir gcc-build && cd gcc-build
         AR=ar LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" \
@@ -96,6 +95,21 @@ cross_tools:
           --with-abi=elfv2 \
           --enable-secureplt \
           --enable-decimal-float=no \
+          {%- endif %}
+          {%- if gcc_arch %}
+          --with-arch={{ gcc_arch }} \
+          {%- endif %}
+          {%- if gcc_cpu %}
+          --with-cpu={{ gcc_cpu }} \
+          {%- endif %}
+          {%- if gcc_tune %}
+          --with-tune={{ gcc_tune }} \
+          {%- endif %}
+          {%- if gcc_fpu %}
+          --with-fpu={{ gcc_fpu }} \
+          {%- endif %}
+          {%- if gcc_float %}
+          --with-float={{ gcc_float }} \
           {%- endif %}
           --prefix=${CLFS}/cross-tools \
           --build=${CLFS_HOST} \
@@ -126,6 +140,7 @@ cross_tools:
         make all-gcc all-target-libgcc
         make install-gcc install-target-libgcc
 
+
     - glibc: |
         mkdir glibc-build && cd glibc-build
         ../configure \
@@ -148,8 +163,7 @@ cross_tools:
         find lib -type f \
           -iname 'crt*.o' \
           -exec ln -sf ../../../usr/{} "${CLFS}"/cross-tools/"${CLFS_TARGET}"/{} \;
-
-    - gcc: |
+    - gcc-final: |
         mkdir gcc-build && cd gcc-build
         AR=ar LDFLAGS="-Wl,-rpath,${CLFS}/cross-tools/lib" \
           ../configure \
@@ -158,23 +172,47 @@ cross_tools:
           --enable-secureplt \
           --enable-decimal-float=no \
           {%- endif %}
+          {%- if gcc_arch %}
+          --with-arch={{ gcc_arch }} \
+          {%- endif %}
+          {%- if gcc_cpu %}
+          --with-cpu={{ gcc_cpu }} \
+          {%- endif %}
+          {%- if gcc_tune %}
+          --with-tune={{ gcc_tune }} \
+          {%- endif %}
+          {%- if gcc_fpu %}
+          --with-fpu={{ gcc_fpu }} \
+          {%- endif %}
+          {%- if gcc_float %}
+          --with-float={{ gcc_float }} \
+          {%- endif %}
           --prefix=${CLFS}/cross-tools \
           --build=${CLFS_HOST} \
-          --target=${CLFS_TARGET} \
           --host=${CLFS_HOST} \
+          --target=${CLFS_TARGET} \
           --with-sysroot=${CLFS} \
+          --with-build-sysroot=${CLFS} \
+          --with-local-prefix=${CLFS}/usr \
           --with-native-system-header-dir=/usr/include \
           --with-lib-path=${CLFS}/usr/lib \
           --enable-initfini-array \
           --disable-nls \
           --disable-static \
+          --enable-shared \
+          --enable-threads=posix \
+          --enable-__cxa_atexit \
+          --enable-clocale=gnu \
           --enable-languages=c,c++ \
           --disable-multilib \
           --disable-libsanitizer \
+          --disable-bootstrap \
+          --with-system-zlib \
           --with-mpfr=${CLFS}/cross-tools \
           --with-gmp=${CLFS}/cross-tools \
           --with-mpc=${CLFS}/cross-tools
-        make AS_FOR_TARGET="${CLFS_TARGET}-as" \
+        make \
+          AS_FOR_TARGET="${CLFS_TARGET}-as" \
           LD_FOR_TARGET="${CLFS_TARGET}-ld"
         make install
 

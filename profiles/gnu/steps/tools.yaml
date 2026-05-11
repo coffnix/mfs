@@ -43,14 +43,6 @@ tools:
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/dev-libs/mpc-${MPC_VERSION}
-    - zlib: |
-        unset CC CXX AR AS RANLIB LD STRIP
-        CHOST=${CLFS_TARGET} \
-        ./configure \
-        --prefix=/usr
-        make
-        make DESTDIR=${CLFS} install
-        install -d ${CLFS}/var/db/pkg/sys-libs/zlib-${ZLIB_VERSION}
     - gettext: |
         {% if bits == 32 %}
         export CPPFLAGS="${CPPFLAGS:-} -DMB_LEN_MAX=16 -DPATH_MAX=4096"
@@ -78,6 +70,7 @@ tools:
         mkdir binutils-build && cd binutils-build
         ../configure \
         --prefix=/usr \
+        --libdir=/usr/lib \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET} \
         --target=${CLFS_TARGET} \
@@ -93,38 +86,86 @@ tools:
         --with-system-zlib \
         --enable-threads
         make
-        make DESTDIR=${CLFS} install-bfd
-        make DESTDIR=${CLFS} -C gas install
-        make DESTDIR=${CLFS} -C ld install
-        make DESTDIR=${CLFS} -C binutils install
+        make DESTDIR=${CLFS} install
+        install -d ${CLFS}/var/db/pkg/sys-devel/binutils-${BINUTILS_VERSION}
+    - glibc: |
+        mkdir glibc-build && cd glibc-build
+        CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}" \
+        CXX="${CLFS_TARGET}-g++ ${CLFS_CFLAGS}" \
+        ../configure \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET} \
+        --disable-profile \
+        --enable-stack-protector=strong \
+        --with-binutils=${CLFS}/cross-tools/bin \
+        --with-headers=${CLFS}/usr/include
+        make
+        make DESTDIR=${CLFS} install
+
+        install -d ${CLFS}/usr/${CLFS_TARGET}
+        ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
+
+        install -d ${CLFS}/var/db/pkg/sys-libs/glibc-${GLIBC_VERSION}
     - gcc: |
         unset CC CXX CFLAGS CXXFLAGS CPPFLAGS LDFLAGS AR AS LD NM RANLIB STRIP
+
         export CC_FOR_BUILD="gcc"
         export CXX_FOR_BUILD="g++"
         export AR_FOR_BUILD="ar"
         export AS_FOR_BUILD="as"
         export LD_FOR_BUILD="ld"
         export NM_FOR_BUILD="nm"
-
         export RANLIB_FOR_BUILD="ranlib"
+
+        export CC_FOR_TARGET="${CLFS_TARGET}-gcc"
+        export CXX_FOR_TARGET="${CLFS_TARGET}-g++"
+        export RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++"
+
+        {% if bits == 32 %}
+        export CFLAGS_FOR_TARGET="${CLFS_CFLAGS}"
+        export CXXFLAGS_FOR_TARGET="${CLFS_CFLAGS}"
+        {% else %}
+        export CFLAGS_FOR_TARGET="${CLFS_CFLAGS:-}"
+        export CXXFLAGS_FOR_TARGET="${CLFS_CFLAGS:-}"
+        {% endif %}
+
         sed -i 's|^RAW_CXX_FOR_TARGET="$CXX_FOR_TARGET|& -nostdinc++|' configure
+
         install -d ${CLFS}/usr/${CLFS_TARGET}
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/include
         ln -sfn ../include ${CLFS}/usr/${CLFS_TARGET}/sys-include
         ln -sfn ../lib ${CLFS}/usr/${CLFS_TARGET}/lib
+
         mkdir gcc-build && cd gcc-build
+
         ../configure \
         {%- if arch == "powerpc" %}
         --with-abi=elfv2 \
         --enable-secureplt \
         --enable-decimal-float=no \
         {%- endif %}
+        {%- if gcc_arch %}
+        --with-arch={{ gcc_arch }} \
+        {%- endif %}
+        {%- if gcc_cpu %}
+        --with-cpu={{ gcc_cpu }} \
+        {%- endif %}
+        {%- if gcc_tune %}
+        --with-tune={{ gcc_tune }} \
+        {%- endif %}
+        {%- if gcc_fpu %}
+        --with-fpu={{ gcc_fpu }} \
+        {%- endif %}
+        {%- if gcc_float %}
+        --with-float={{ gcc_float }} \
+        {%- endif %}
         --prefix=/usr \
         --build=${CLFS_HOST} \
         --host=${CLFS_HOST} \
         --target=${CLFS_TARGET} \
         --with-sysroot=${CLFS} \
-        CC_FOR_TARGET="${CLFS_TARGET}-gcc" \
         --with-build-sysroot=${CLFS} \
         --with-local-prefix=${CLFS}/usr \
         --disable-multilib \
@@ -140,9 +181,16 @@ tools:
         --with-mpfr=${CLFS}/cross-tools \
         --with-gmp=${CLFS}/cross-tools \
         --with-mpc=${CLFS}/cross-tools
+
         make \
+        CFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}" \
+        CXXFLAGS_FOR_TARGET="${CXXFLAGS_FOR_TARGET}" \
+        CC_FOR_TARGET="${CC_FOR_TARGET}" \
+        CXX_FOR_TARGET="${CXX_FOR_TARGET}" \
+        RAW_CXX_FOR_TARGET="${RAW_CXX_FOR_TARGET}" \
         AS_FOR_TARGET="${CLFS_TARGET}-as" \
         LD_FOR_TARGET="${CLFS_TARGET}-ld"
+
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
     - gcc-final: |
@@ -194,6 +242,21 @@ tools:
         --enable-secureplt \
         --enable-decimal-float=no \
         {%- endif %}
+        {%- if gcc_arch %}
+        --with-arch={{ gcc_arch }} \
+        {%- endif %}
+        {%- if gcc_cpu %}
+        --with-cpu={{ gcc_cpu }} \
+        {%- endif %}
+        {%- if gcc_tune %}
+        --with-tune={{ gcc_tune }} \
+        {%- endif %}
+        {%- if gcc_fpu %}
+        --with-fpu={{ gcc_fpu }} \
+        {%- endif %}
+        {%- if gcc_float %}
+        --with-float={{ gcc_float }} \
+        {%- endif %}
         --prefix=/usr \
         --libdir=/usr/lib \
         --build=${CLFS_HOST} \
@@ -229,6 +292,8 @@ tools:
         CC_FOR_TARGET="${CLFS_TARGET}-gcc" \
         CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
         RAW_CXX_FOR_TARGET="${CLFS_TARGET}-g++" \
+        CFLAGS_FOR_TARGET="${CLFS_CFLAGS}" \
+        CXXFLAGS_FOR_TARGET="${CLFS_CFLAGS}" \
         AS_FOR_TARGET="${CLFS_TARGET}-as" \
         LD_FOR_TARGET="${CLFS_TARGET}-ld"
 
@@ -255,10 +320,35 @@ tools:
         file ${CLFS}/usr/bin/${CLFS_TARGET}-gcc
         file ${CLFS}/usr/bin/g++
         file ${CLFS}/usr/bin/${CLFS_TARGET}-g++
-        file ${CLFS}/usr/bin/${CLFS_TARGET}-gcov
-        file ${CLFS}/usr/bin/${CLFS_TARGET}-lto-dump
+        file ${CLFS}/usr/libexec/gcc/${CLFS_TARGET}/${GCC_VERSION}/cc1
+        file ${CLFS}/usr/libexec/gcc/${CLFS_TARGET}/${GCC_VERSION}/cc1plus
+        file ${CLFS}/usr/libexec/gcc/${CLFS_TARGET}/${GCC_VERSION}/collect2
+        file ${CLFS}/usr/bin/gcov
+        file ${CLFS}/usr/bin/gcov-tool
+        file ${CLFS}/usr/bin/gcov-dump
+        file ${CLFS}/usr/bin/lto-dump
 
         install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
+    - zlib: |
+        unset CC CXX AR AS RANLIB LD STRIP
+        CHOST=${CLFS_TARGET} \
+        ./configure \
+        --prefix=/usr
+        make
+        make DESTDIR=${CLFS} install
+        install -d ${CLFS}/var/db/pkg/sys-libs/zlib-${ZLIB_VERSION}
+    - make: |
+        ./configure \
+        --prefix=/usr \
+        --program-prefix=g \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET} \
+        --without-guile
+        make
+        make DESTDIR=${CLFS} install
+        ln -sf gmake ${CLFS}/usr/bin/make
+        ln -sf gmake.1 ${CLFS}/usr/share/man/man1/make.1
+        install -d ${CLFS}/var/db/pkg/sys-devel/make-${MAKE_VERSION}
     - ncurses: |
         sed -i -e "s/INSTALL_OPT_S=\\\"-s/& --strip-program=${STRIP}/" configure
         mkdir ncurses-build && cd ncurses-build
@@ -545,18 +635,6 @@ tools:
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/app-arch/gzip-${GZIP_VERSION}
-    - make: |
-        ./configure \
-        --prefix=/usr \
-        --program-prefix=g \
-        --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        --without-guile
-        make
-        make DESTDIR=${CLFS} install
-        ln -sf gmake ${CLFS}/usr/bin/make
-        ln -sf gmake.1 ${CLFS}/usr/share/man/man1/make.1
-        install -d ${CLFS}/var/db/pkg/sys-devel/make-${MAKE_VERSION}
     - patch: |
         {% if bits == 32 %}
         export CPPFLAGS="-D_GNU_SOURCE -DMB_LEN_MAX=16 -DPATH_MAX=4096"

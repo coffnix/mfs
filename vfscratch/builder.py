@@ -8,6 +8,14 @@ from yaml import safe_load
 from vfscratch.common import Sourcer
 
 
+def parse_cflag_value(cflags, option):
+	for item in cflags.split():
+		prefix = option + "="
+		if item.startswith(prefix):
+			return item[len(prefix):]
+	return None
+
+
 class Builder:
 
 	SOURCE_ALIAS_SUFFIXES = (
@@ -102,6 +110,14 @@ class Builder:
 		with open(os.path.join(os.environ["CLFS"], "profiles", self.build, "arches", f"{arch}.yaml")) as myarch:
 			self.arch = safe_load(myarch.read())["arch"]
 
+		cflags = self.arch.get("cflags", "")
+
+		self.arch["gcc_arch"] = parse_cflag_value(cflags, "-march")
+		self.arch["gcc_cpu"] = parse_cflag_value(cflags, "-mcpu")
+		self.arch["gcc_tune"] = parse_cflag_value(cflags, "-mtune")
+		self.arch["gcc_fpu"] = parse_cflag_value(cflags, "-mfpu")
+		self.arch["gcc_float"] = parse_cflag_value(cflags, "-mfloat-abi")
+
 		with open(os.path.join(inpath, "profiles", self.build, "steps", f"{steps}.yaml"), "r") as myf:
 			for rule_name, rule in safe_load(myf.read()).items():
 				if "defaults" in rule:
@@ -141,6 +157,3 @@ class Builder:
 					if os.path.exists(state["running"]):
 						os.remove(state["running"])
 					self.write_state_file(state["done"], package_name, "done")
-
-
-# vim: ts=4 sw=4 noet

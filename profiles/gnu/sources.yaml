@@ -5,8 +5,8 @@ sources:
       ext: xz
     packages:
       - autoconf: 2.72
-      - automake: 1.17
-      - libtool: 2.5.4
+      - automake: 1.16
+      - libtool: 2.4.6
       - binutils: "2.40"
       - mpfr: 4.0.2
       - gmp: 6.3.0
@@ -15,11 +15,11 @@ sources:
           ext: gz
       - gcc:
           url: https://mirrors.kernel.org/gnu/{name}/{name}-{version}/{name}-{version}.tar.{ext}
-          version: 14.3.0
+          version: 12.3.0
       - glibc:
-          version: 2.43
-          patches:
-            - glibc-2.43-linux-7-open_tree_clone.patch
+          version: 2.41
+          #patches:
+          #  - glibc-2.43-linux-7-open_tree_clone.patch
       - ncurses:
           version: 6.5
           ext: gz
@@ -51,8 +51,8 @@ sources:
   non-gnu:
     packages:
       - linux:
-          version: "7.0.3"
-          url: https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-{version}.tar.xz
+          version: "6.9"
+          url: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-{version}.tar.xz
       - git:
           version: 2.49.0
           url: https://cdn.kernel.org/pub/software/scm/git/git-{version}.tar.xz
@@ -70,7 +70,7 @@ sources:
           url: https://github.com/libcheck/check/releases/download/{version}/check-{version}.tar.gz
       - file:
           version: 5.46
-          url: http://ftp.astron.com/pub/file/file-{version}.tar.gz
+          url: https://astron.com/pub/file/file-{version}.tar.gz
       - rsync:
           version: 3.4.1
           url: https://download.samba.org/pub/rsync/src/rsync-{version}.tar.gz
