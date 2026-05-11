@@ -303,16 +303,15 @@ mchroot:
         GIT_SSL_NO_VERIFY=true git clone https://github.com/ninja-build/ninja.git
         cd ninja
         ./configure.py --bootstrap
-        cd ..  
+        cd ..
         chmod +x ./ninja/ninja
-        export PATH=$PWD/ninja:$PATH 
+        export PATH=$PWD/ninja:$PATH
         GIT_SSL_NO_VERIFY=true git clone https://github.com/mesonbuild/meson.git
-        cd meson
-        git checkout 1.8.5
+        cd meson ; git checkout 1.8.5 ; cd ..
         ./meson/meson.py setup builddir --prefix=/usr --buildtype=release
         cd builddir
         ../meson/meson.py compile
-        ../meson/meson.py install  
+        ../meson/meson.py install
         install -d /var/db/pkg/app-misc/pax-utils-${PAX_UTILS_VERSION}
     - sandbox: |
         autoreconf -i -f
