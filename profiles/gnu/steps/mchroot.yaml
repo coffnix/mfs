@@ -47,7 +47,7 @@ mchroot:
         --with-mpc=/usr
 
         make \
-        CPP="cpp" \
+        CPP="gcc -E" \
         CC="gcc ${CLFS_CFLAGS}" \
         CXX="g++ ${CLFS_CFLAGS}"
         make install
