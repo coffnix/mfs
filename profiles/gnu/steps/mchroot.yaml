@@ -245,7 +245,7 @@ mchroot:
         make
         make install
         install -d /usr/lib/python-exec/python${PYTHON_VERSION%.*}
-        ln -sf /usr/bin/python${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python${PYTHON_VERSION%%.*}
+        ln -sf ../../../bin/python${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python${PYTHON_VERSION%%.*}
         ln -sf python${PYTHON_VERSION%%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python
         cat > /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python${PYTHON_VERSION%%.*}-config << "PYTHON_EOF"
         #!/bin/sh
@@ -253,9 +253,9 @@ mchroot:
         PYTHON_EOF
         chmod +x /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python${PYTHON_VERSION%%.*}-config
         ln -sf python${PYTHON_VERSION%%.*}-config /usr/lib/python-exec/python${PYTHON_VERSION%.*}/python-config
-        ln -sf /tools/bin/2to3-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/2to3
-        ln -sf /tools/bin/pydoc${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pydoc
-        ln -sf /tools/bin/pyvenv-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pyvenv
+        ln -sf ../../../bin/2to3-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/2to3
+        ln -sf ../../../bin/pydoc${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pydoc
+        ln -sf ../../../bin/pyvenv-${PYTHON_VERSION%.*} /usr/lib/python-exec/python${PYTHON_VERSION%.*}/pyvenv
         install -d /var/db/pkg/dev-lang/python-${PYTHON_VERSION}
     - python-exec: |
         PYTHON_REAL="$(ls /usr/bin/python3.[0-9]* | grep -v config | head -n1)"
@@ -344,23 +344,21 @@ mchroot:
         print(f"python{sys.version_info.major}.{sys.version_info.minor}")
         PYEOF
         )"
+
+        install -d /usr/lib/python-exec/${PYTHON_IMPL}
+
         /usr/bin/python3 setup.py build
         /usr/bin/python3 setup.py install \
           --system-prefix=/usr \
           --bindir=/usr/lib/python-exec/${PYTHON_IMPL} \
           --sbindir=/usr/lib/python-exec/${PYTHON_IMPL} \
-          --sbindir=/usr/lib/python-exec/python \
           --docdir=/usr/share/doc/portage-${PORTAGE_VERSION} \
           --htmldir=/usr/share/doc/portage-${PORTAGE_VERSION}/html \
           --portage-bindir=/usr/lib/portage/python \
           --sysconfdir=/etc
 
+        install -d /usr/bin
         install -d /usr/sbin
-        for target in archive-conf dispatch-conf emaint env-update etc-update fixpackages regenworld; do
-          if [ -e /usr/lib/python-exec/${PYTHON_IMPL}/${target} ]; then
-            mv /usr/lib/python-exec/${PYTHON_IMPL}/${target} /usr/sbin/${target}
-          fi
-        done
 
         ln -sf ../lib/python-exec/python-exec2 /usr/bin/ebuild
         ln -sf ../lib/python-exec/python-exec2 /usr/bin/egencache
@@ -376,6 +374,16 @@ mchroot:
         ln -sf ../lib/python-exec/python-exec2 /usr/sbin/etc-update
         ln -sf ../lib/python-exec/python-exec2 /usr/sbin/fixpackages
         ln -sf ../lib/python-exec/python-exec2 /usr/sbin/regenworld
+
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/emerge
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/ebuild
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/env-update
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/archive-conf
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/dispatch-conf
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/emaint
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/etc-update
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/fixpackages
+        test -x /usr/lib/python-exec/${PYTHON_IMPL}/regenworld
 
         rm -f /usr/share/portage/config/repos.conf
 
@@ -451,6 +459,7 @@ mchroot:
         # This will ensure base files for env-update are in place. -build since fs already exists.
         GIT_SSL_NO_VERIFY=true ego sync
         USE="-build" emerge --nodeps baselayout
+        emerge dev-lang/python-exec
         /sbin/ldconfig
         /usr/sbin/env-update
         source /etc/profile
