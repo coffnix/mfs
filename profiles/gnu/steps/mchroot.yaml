@@ -457,9 +457,7 @@ mchroot:
         # This allows all files in /etc/ to be directly overwritten.
         export CONFIG_PROTECT="-*"
         # This will ensure base files for env-update are in place. -build since fs already exists.
-        GIT_SSL_NO_VERIFY=true ego sync
         USE="-build" emerge --nodeps baselayout
-        emerge dev-lang/python-exec
         /sbin/ldconfig
         /usr/sbin/env-update
         source /etc/profile
@@ -508,6 +506,7 @@ mchroot:
         emerge sys-apps/attr
         emerge sys-apps/acl
         emerge --jobs=3 kmod
+        emerge dev-lang/python-exec
         emerge --jobs=3 util-linux
         emerge --jobs=3 ncurses python
         emerge --jobs=3 bash gcc
