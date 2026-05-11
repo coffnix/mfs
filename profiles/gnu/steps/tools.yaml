@@ -66,6 +66,14 @@ tools:
         make
         make DESTDIR=${CLFS} install
         install -d ${CLFS}/var/db/pkg/sys-devel/bison-${BISON_VERSION}
+    - zlib: |
+        unset CC CXX AR AS RANLIB LD STRIP
+        CHOST=${CLFS_TARGET} \
+        ./configure \
+        --prefix=/usr
+        make
+        make DESTDIR=${CLFS} install
+        install -d ${CLFS}/var/db/pkg/sys-libs/zlib-${ZLIB_VERSION}
     - binutils: |
         mkdir binutils-build && cd binutils-build
         ../configure \
@@ -329,14 +337,6 @@ tools:
         file ${CLFS}/usr/bin/lto-dump
 
         install -d ${CLFS}/var/db/pkg/sys-devel/gcc-${GCC_VERSION}
-    - zlib: |
-        unset CC CXX AR AS RANLIB LD STRIP
-        CHOST=${CLFS_TARGET} \
-        ./configure \
-        --prefix=/usr
-        make
-        make DESTDIR=${CLFS} install
-        install -d ${CLFS}/var/db/pkg/sys-libs/zlib-${ZLIB_VERSION}
     - make: |
         ./configure \
         --prefix=/usr \
