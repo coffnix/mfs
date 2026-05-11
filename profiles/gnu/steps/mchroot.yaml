@@ -3,14 +3,13 @@ mchroot:
     template: mchroot.tmpl
   steps:
     - gcc-final: |
-        export CC="gcc ${CLFS_CFLAGS}"
-        export CXX="g++ ${CLFS_CFLAGS}"
-        export CPP="gcc -E"
+        export CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}"
+        export CXX="${CLFS_TARGET}-g++ ${CLFS_CFLAGS}"
         export CFLAGS="${CLFS_CFLAGS}"
         export CXXFLAGS="${CLFS_CFLAGS}"
         export CPPFLAGS=""
         export LDFLAGS=""
-        
+
         rm -rf gcc-build
         mkdir gcc-build
         cd gcc-build
@@ -20,6 +19,21 @@ mchroot:
         --with-abi=elfv2 \
         --enable-secureplt \
         --enable-decimal-float=no \
+        {%- endif %}
+        {%- if gcc_arch %}
+        --with-arch={{ gcc_arch }} \
+        {%- endif %}
+        {%- if gcc_cpu %}
+        --with-cpu={{ gcc_cpu }} \
+        {%- endif %}
+        {%- if gcc_tune %}
+        --with-tune={{ gcc_tune }} \
+        {%- endif %}
+        {%- if gcc_fpu %}
+        --with-fpu={{ gcc_fpu }} \
+        {%- endif %}
+        {%- if gcc_float %}
+        --with-float={{ gcc_float }} \
         {%- endif %}
         --prefix=/usr \
         --libdir=/usr/lib \
@@ -46,11 +60,17 @@ mchroot:
         --with-mpfr=/usr \
         --with-mpc=/usr
 
-        make \
-        CPP="gcc -E" \
-        CC="gcc ${CLFS_CFLAGS}" \
-        CXX="g++ ${CLFS_CFLAGS}"
+        make
         make install
+
+        rm -f /usr/bin/cpp
+        rm -f /usr/bin/gcc
+        rm -f /usr/bin/g++
+        rm -f /usr/bin/c++
+        rm -f /usr/bin/gcc-ar
+        rm -f /usr/bin/gcc-nm
+        rm -f /usr/bin/gcc-ranlib
+        rm -f /usr/bin/cc
 
         ln -sf ${CLFS_TARGET}-gcc /usr/bin/gcc
         ln -sf ${CLFS_TARGET}-g++ /usr/bin/g++
@@ -60,9 +80,12 @@ mchroot:
         ln -sf ${CLFS_TARGET}-gcc-ranlib /usr/bin/gcc-ranlib
         ln -sf ${CLFS_TARGET}-gcc /usr/bin/${CLFS_TARGET}-cpp
         ln -sf ${CLFS_TARGET}-cpp /usr/bin/cpp
+        ln -sf gcc /usr/bin/cc
 
         file /usr/bin/gcc
         file /usr/bin/g++
+        file /usr/bin/c++
+        file /usr/bin/cc
         file /usr/bin/${CLFS_TARGET}-gcc
         file /usr/bin/${CLFS_TARGET}-g++
         file /usr/bin/${CLFS_TARGET}-gcov
@@ -283,8 +306,10 @@ mchroot:
         cd ..  
         chmod +x ./ninja/ninja
         export PATH=$PWD/ninja:$PATH 
-        GIT_SSL_NO_VERIFY=true git clone https://github.com/mesonbuild/meson.git  
-        ./meson/meson.py setup builddir --prefix=/usr --buildtype=release 
+        GIT_SSL_NO_VERIFY=true git clone https://github.com/mesonbuild/meson.git
+        cd meson
+        git checkout 1.8.5
+        ./meson/meson.py setup builddir --prefix=/usr --buildtype=release
         cd builddir
         ../meson/meson.py compile
         ../meson/meson.py install  
