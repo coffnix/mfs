@@ -5,6 +5,7 @@ dev/**
 cross-tools/**
 tools/**
 lib/**
+lib64/**
 run/**
 tmp/**
 usr/**
