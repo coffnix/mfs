@@ -501,6 +501,9 @@ mchroot:
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
         epro arch arm-32bit
         epro subarch banana-pi-a7
+        {% elif ego_arch is defined and ego_subarch is defined %}
+        epro arch {{ego_arch}}
+        epro subarch {{ego_subarch}}
         {% endif %}
         epro flavor core
         ego profile mix-in -stage1

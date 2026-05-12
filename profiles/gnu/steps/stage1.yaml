@@ -35,18 +35,25 @@ mchroot:
         install -d ${ROOT}/etc/portage/make.profile
         ln -sf /var/git/meta-repo $ROOT/var/git/
         cat > ${ROOT}/etc/portage/make.profile/parent << "MKP_EOF"
-        core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}
-        core-kit:macaroni/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
-        core-kit:macaroni/1.0/linux-gnu/build/next
-        core-kit:macaroni/1.0/linux-gnu/flavor/core
-        core-kit:macaroni/1.0/linux-gnu/mix-ins/stage1
+        {% if target == "armv7a-unknown-linux-gnueabihf" %}
+        core-kit:funtoo/1.0/linux-gnu/arch/arm-32bit
+        core-kit:funtoo/1.0/linux-gnu/arch/arm-32bit/subarch/banana-pi-a7
+        {% elif ego_arch is defined and ego_subarch is defined %}
+        core-kit:funtoo/1.0/linux-gnu/arch/{{ego_arch}}
+        core-kit:funtoo/1.0/linux-gnu/arch/{{ego_arch}}/subarch/{{ego_subarch}}
+        {% endif %}
+        core-kit:funtoo/1.0/linux-gnu/build/mark
+        core-kit:funtoo/1.0/linux-gnu/flavor/core
+        core-kit:funtoo/1.0/linux-gnu/mix-ins/stage1
+        core-kit:funtoo/kits/python-kit/mark
         MKP_EOF
         # fix a circular dep
-        install -d /var/db/pkg/sys-apps/openrc-9999
+        #install -d /var/db/pkg/sys-apps/openrc-9999
+        install -d ${ROOT}/var/db/pkg/sys-apps/openrc-9999
         # It's important to merge baselayout first so it can set perms on key dirs
         emerge --nodeps baselayout
-        unlink $ROOT/bin 
-        unlink $ROOT/sbin   
+        unlink $ROOT/bin
+        unlink $ROOT/sbin
         unlink $ROOT/usr/sbin
         install -m 0755 -d $ROOT/bin
         install -m 0755 -d $ROOT/sbin
