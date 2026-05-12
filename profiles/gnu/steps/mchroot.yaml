@@ -506,12 +506,12 @@ mchroot:
         echo 'sys-apps/acl nls split-usr' >> /etc/portage/package.use
         echo 'sys-apps/util-linux caps cramfs logger ncurses nls pam python readline split-usr static-libs suid tty-helpers unicode' >> /etc/portage/package.use
         emerge --jobs=3 python
+        emerge --jobs=3 util-linux
         emerge --jobs=3 portage
         emerge sys-apps/attr
         emerge sys-apps/acl
         emerge --jobs=3 kmod
         emerge dev-lang/python-exec
-        emerge --jobs=3 util-linux
         emerge --jobs=3 ncurses python
         emerge --jobs=3 bash gcc
         gcc-config 1
