@@ -38,7 +38,7 @@ VFScratch can automatically inject local repository modifications into container
 
 Unlike the original FFS environment, the VFScratch workflow is designed around MacaroniOS tooling, EGO integration and Macaroni-compatible package management behavior.
 
-LXD Setup
+Build your Linux from scratch
 
 =========
 
@@ -70,6 +70,10 @@ generate initial stage1 filesystem
 ::
   $ export CLFS=~/VFScratch
   $ bin/builder gnu arm-32bit stage1
+
+
+
+LXD Setup
 
 =========
 
