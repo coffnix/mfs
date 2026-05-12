@@ -326,12 +326,60 @@ mchroot:
     - none: |
         cat > /etc/passwd << "PASSWD_EOF"
         root:x:0:0:root:/root:/bin/bash
+        bin:x:1:1:bin:/dev/null:/bin/false
+        daemon:x:2:2:daemon:/dev/null:/bin/false
+        adm:x:3:4:adm:/dev/null:/bin/false
+        lp:x:4:7:lp:/dev/null:/bin/false
+        mail:x:8:12:mail:/dev/null:/bin/false
+        news:x:9:13:news:/dev/null:/bin/false
+        uucp:x:10:14:uucp:/dev/null:/bin/false
+        nobody:x:65534:65534:nobody:/dev/null:/bin/false
         portage:x:250:250:portage:/var/tmp/portage:/bin/false
         PASSWD_EOF
         cat > /etc/group << "GROUP_EOF"
         root:x:0:root
-        portage::250:portage
+        bin:x:1:root,bin,daemon
+        daemon:x:2:root,bin,daemon
+        sys:x:3:root,bin,adm
+        adm:x:4:root,adm,daemon
+        tty:x:5:
+        disk:x:6:root
+        lp:x:7:lp
+        mem:x:8:
+        kmem:x:9:
+        wheel:x:10:root
+        mail:x:12:mail
+        news:x:13:news
+        uucp:x:14:uucp
+        man:x:15:
+        cron:x:16:
+        console:x:17:
+        audio:x:18:
+        cdrom:x:19:
+        dialout:x:20:
+        tape:x:26:
+        video:x:27:
+        cdrw:x:80:
+        usb:x:85:
+        input:x:97:
+        users:x:100:
+        utmp:x:406:
+        portage:x:250:portage
+        nogroup:x:65533:
+        nobody:x:65534:
         GROUP_EOF
+        cat > /etc/shadow << "SHADOW_EOF"
+        root:*:10770:0:::::
+        bin:*:9797:0:::::
+        daemon:*:9797:0:::::
+        adm:*:9797:0:::::
+        lp:*:9797:0:::::
+        mail:*:9797:0:::::
+        news:*:9797:0:::::
+        uucp:*:9797:0:::::
+        nobody:*:9797:0:::::
+        portage:*:9797:0:::::
+        SHADOW_EOF
     - portage: |
         sed -e 's:^VERSION = "HEAD"$:VERSION = "'${PORTAGE_VERSION}'":' -i lib/portage/__init__.py
 
