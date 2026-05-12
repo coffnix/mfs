@@ -75,8 +75,8 @@ sources:
           version: 3.4.1
           url: https://download.samba.org/pub/rsync/src/rsync-{version}.tar.gz
       - util-linux:
-          version: 2.41
-          url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v2.41/util-linux-{version}.tar.gz
+          version: 2.40
+          url: https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v2.40/util-linux-{version}.tar.gz
       - xz-utils:
           version: 5.8.1
           url: https://tukaani.org/xz/xz-{version}.tar.gz

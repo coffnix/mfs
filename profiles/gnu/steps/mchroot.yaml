@@ -504,6 +504,7 @@ mchroot:
         echo 'sys-apps/kmod lzma pkcs7 python tools zlib zstd' > /etc/portage/package.use
         echo 'sys-apps/attr nls split-usr static-libs ' >> /etc/portage/package.use
         echo 'sys-apps/acl nls split-usr' >> /etc/portage/package.use
+        echo 'sys-apps/util-linux caps cramfs logger ncurses nls pam python readline split-usr static-libs suid tty-helpers unicode' >> /etc/portage/package.use
         emerge --jobs=3 python
         emerge --jobs=3 portage
         emerge sys-apps/attr
