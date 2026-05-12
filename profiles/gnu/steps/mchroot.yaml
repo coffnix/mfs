@@ -63,6 +63,7 @@ mchroot:
         make
         make install
 
+
         rm -f /usr/bin/cpp
         rm -f /usr/bin/gcc
         rm -f /usr/bin/g++
@@ -71,16 +72,18 @@ mchroot:
         rm -f /usr/bin/gcc-nm
         rm -f /usr/bin/gcc-ranlib
         rm -f /usr/bin/cc
-
+        rm -f /usr/bin/${CLFS_TARGET}-cpp
+        
         ln -sf ${CLFS_TARGET}-gcc /usr/bin/gcc
         ln -sf ${CLFS_TARGET}-g++ /usr/bin/g++
         ln -sf ${CLFS_TARGET}-c++ /usr/bin/c++
         ln -sf ${CLFS_TARGET}-gcc-ar /usr/bin/gcc-ar
         ln -sf ${CLFS_TARGET}-gcc-nm /usr/bin/gcc-nm
         ln -sf ${CLFS_TARGET}-gcc-ranlib /usr/bin/gcc-ranlib
-        ln -sf ${CLFS_TARGET}-gcc /usr/bin/${CLFS_TARGET}-cpp
-        ln -sf ${CLFS_TARGET}-cpp /usr/bin/cpp
         ln -sf gcc /usr/bin/cc
+        printf '%s\n' '#!/bin/sh' "exec /usr/bin/${CLFS_TARGET}-gcc -E -x c \"\$@\"" > /usr/bin/${CLFS_TARGET}-cpp
+        chmod 755 /usr/bin/${CLFS_TARGET}-cpp
+        ln -sf ${CLFS_TARGET}-cpp /usr/bin/cpp
 
         file /usr/bin/gcc
         file /usr/bin/g++
