@@ -2,6 +2,10 @@ Vipnix From Scratch
 
 ===================
 
+Attention: Requires mchroot, which you can obtain at: https://github.com/coffnix/mchroot
+
+===================
+
 "Vipnix From Scratch" is a source-based bootstrap framework derived from FFS (Funtoo From Scratch), originally created by Daniel Robbins. VFScratch has been heavily modified to support a personalized MacaroniOS-based environment, integrating Macaroni EGO tooling, Macaroni ebuilds, and several improvements to cross-compilation, chroot isolation and bootstrap reliability.
 
 This technology can be used to bootstrap a personalized MacaroniOS-compatible stage1 tarball, as well as "Alkaline" MUSL micro-containers, completely from source code, bootstrapping the system using a cross-compiler, which itself is bootstrapped from a local compiler, ensuring the final binary environment is a completely new and isolated "greenfield" environment.
