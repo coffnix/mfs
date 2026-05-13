@@ -10,7 +10,6 @@ mchroot:
         /sbin/ldconfig
         source /etc/profile
         export CONFIG_PROTECT="-*"
-        export PYTHON_ABIS="$(portageq envvar PYTHON_ABIS)"
         export FEATURES="-pid-sandbox nodoc noman noinfo"
 
         export ROOT=/tmp/stage1root
@@ -47,6 +46,14 @@ mchroot:
         core-kit:funtoo/1.0/linux-gnu/mix-ins/stage1
         core-kit:funtoo/kits/python-kit/mark
         MKP_EOF
+        install -d ${ROOT}/etc/python-exec
+        python - <<'PY' > ${ROOT}/etc/python-exec/python-exec.conf
+        import os
+        targets = os.popen("portageq envvar PYTHON_TARGETS").read().split()
+        for t in targets:
+            if t.startswith("python"):
+                print(t.replace("_", "."))
+        PY
         # fix a circular dep
         #install -d /var/db/pkg/sys-apps/openrc-9999
         install -d ${ROOT}/var/db/pkg/sys-apps/openrc-9999
@@ -58,7 +65,7 @@ mchroot:
         install -m 0755 -d $ROOT/bin
         install -m 0755 -d $ROOT/sbin
         install -m 0755 -d $ROOT/usr/sbin
-        
+
         TO_BUILD="
           app-arch/bzip2
           app-arch/gzip
