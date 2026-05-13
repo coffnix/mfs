@@ -1,38 +1,55 @@
 mchroot:
   defaults:
     template: stage1.tmpl
+
   steps:
     - none: |
         # Do this so we have an updated tree if resuming from here:
         GIT_SSL_NO_VERIFY=true ego sync
+
         # Do this before setting ROOT:
         /usr/sbin/env-update
         /sbin/ldconfig
         source /etc/profile
+
+        export LANG=C
+        export LC_ALL=C
         export CONFIG_PROTECT="-*"
         export FEATURES="-pid-sandbox nodoc noman noinfo"
 
+        export GIT_CONFIG_GLOBAL=/dev/null
+        export GIT_DISCOVERY_ACROSS_FILESYSTEM=0
+        export GIT_CEILING_DIRECTORIES=/var/tmp/portage:/tmp:/
+
         export ROOT=/tmp/stage1root
-        rm -rf $ROOT
-        install -m 0755 -d $ROOT/bin
-        install -m 0755 -d $ROOT/sbin
-        install -m 0755 -d $ROOT/usr/sbin
-        install -m 0755 -d $ROOT/usr/bin
-        # also fix a lib issue -- did I miss some steps from metro?
+
+        rm -rf ${ROOT}
+
+        install -m 0755 -d ${ROOT}/bin
+        install -m 0755 -d ${ROOT}/sbin
+        install -m 0755 -d ${ROOT}/usr/bin
+        install -m 0755 -d ${ROOT}/usr/sbin
+
         {% if bits == 64 %}
-        install -m 0755 -d $ROOT/lib64
-        ln -sf lib64 $ROOT/lib
-        install -m 0755 -d $ROOT/usr/lib
-        ln -sf lib $ROOT/usr/lib64
+        install -m 0755 -d ${ROOT}/lib64
+        ln -sf lib64 ${ROOT}/lib
+
+        install -m 0755 -d ${ROOT}/usr/lib
+        ln -sf lib ${ROOT}/usr/lib64
         {% else %}
-        install -m 0755 -d $ROOT/lib
-        install -m 0755 -d $ROOT/usr/lib
+        install -m 0755 -d ${ROOT}/lib
+        install -m 0755 -d ${ROOT}/usr/lib
         {% endif %}
+
         install -d ${ROOT}/{proc,sys,dev}
+
         # create symlink to real meta-repo to allow ego to pick up profiles inside ROOT...
-        install -m 0755 -o 250 -g 250 -d $ROOT/var/git
+        install -m 0755 -o 250 -g 250 -d ${ROOT}/var/git
+
         install -d ${ROOT}/etc/portage/make.profile
-        ln -sf /var/git/meta-repo $ROOT/var/git/
+
+        ln -sf /var/git/meta-repo ${ROOT}/var/git/
+
         cat > ${ROOT}/etc/portage/make.profile/parent << "MKP_EOF"
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
         core-kit:funtoo/1.0/linux-gnu/arch/arm-32bit
@@ -46,25 +63,40 @@ mchroot:
         core-kit:funtoo/1.0/linux-gnu/mix-ins/stage1
         core-kit:funtoo/kits/python-kit/mark
         MKP_EOF
+
         install -d ${ROOT}/etc/python-exec
-        python - <<'PY' > ${ROOT}/etc/python-exec/python-exec.conf
+
+        python - << 'PY' > ${ROOT}/etc/python-exec/python-exec.conf
         import os
+
         targets = os.popen("portageq envvar PYTHON_TARGETS").read().split()
+
         for t in targets:
             if t.startswith("python"):
                 print(t.replace("_", "."))
         PY
+
         # fix a circular dep
-        #install -d /var/db/pkg/sys-apps/openrc-9999
         install -d ${ROOT}/var/db/pkg/sys-apps/openrc-9999
+
         # It's important to merge baselayout first so it can set perms on key dirs
         emerge --nodeps baselayout
-        rm -rf $ROOT/bin
-        rm -rf $ROOT/sbin
-        rm -rf $ROOT/usr/sbin
-        install -m 0755 -d $ROOT/bin
-        install -m 0755 -d $ROOT/sbin
-        install -m 0755 -d $ROOT/usr/sbin
+
+        rm -rf ${ROOT}/bin
+        rm -rf ${ROOT}/sbin
+        rm -rf ${ROOT}/usr/sbin
+
+        install -m 0755 -d ${ROOT}/bin
+        install -m 0755 -d ${ROOT}/sbin
+        install -m 0755 -d ${ROOT}/usr/sbin
+
+        cd /tmp
+
+        echo "=== TESTANDO pax-utils ISOLADO ==="
+
+        emerge --oneshot app-misc/pax-utils || exit 1
+
+        echo "=== pax-utils OK ==="
 
         TO_BUILD="
           app-arch/bzip2
@@ -103,8 +135,11 @@ mchroot:
           virtual/os-headers
           virtual/package-manager
           sys-apps/openrc
-          dev-vcs/git"
+          dev-vcs/git
+        "
 
-        emerge --noreplace --oneshot --jobs=3 $TO_BUILD
+        emerge --noreplace --oneshot --jobs=3 ${TO_BUILD}
+
         ego profile mix-in -stage1
-        rm -rf $ROOT/var/git/meta-repo
+
+        rm -rf ${ROOT}/var/git/meta-repo
