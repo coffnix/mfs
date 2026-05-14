@@ -1,0 +1,23 @@
+#!/bin/bash
+if [ "$UID" != "0" ]; then
+	# if not root, expect sudo to grant us access to mchroot:
+	sudo_exe=sudo
+else
+	sudo_exe=""
+fi
+exec $sudo_exe mchroot ${CLFS} /bin/bash --login << "EOF"
+source /etc/profile
+set -e
+set -o pipefail
+set -u
+set +h
+set -x
+umask 022
+rm -rf /build/*
+{{unpack}}
+export BOOTSTRAP_RAP="yes"
+export LC_ALL=POSIX
+export MAKEOPTS="-j$(nproc) -l$(nproc)"
+{{build_steps}}
+sleep 0.01
+EOF

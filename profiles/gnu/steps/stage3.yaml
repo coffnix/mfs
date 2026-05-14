@@ -1,0 +1,49 @@
+mchroot:
+  defaults:
+    template: stage3.tmpl
+
+  steps:
+    - none: |
+        # Do this so we have an updated tree if resuming from here:
+        GIT_SSL_NO_VERIFY=true ego sync
+
+        # Do this before setting ROOT:
+        /usr/sbin/env-update
+        /sbin/ldconfig
+        source /etc/profile
+
+        export LANG=C
+        export LC_ALL=C
+        export CONFIG_PROTECT="-*"
+        export FEATURES="-pid-sandbox nodoc noman noinfo"
+
+        export GIT_CONFIG_GLOBAL=/dev/null
+        export GIT_DISCOVERY_ACROSS_FILESYSTEM=0
+        export GIT_CEILING_DIRECTORIES=/var/tmp/portage:/tmp:/
+
+        export ROOT=/tmp/stage1root
+
+        install -d ${ROOT}/var/overlay/overlay-local/profiles
+        install -d ${ROOT}/var/overlay/overlay-local/metadata
+        install -d ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi
+        install -d ${ROOT}/etc/portage/repos.conf
+
+        echo overlay-local > ${ROOT}/var/overlay/overlay-local/profiles/repo_name
+
+        cat > ${ROOT}/var/overlay/overlay-local/metadata/layout.conf << 'LAYOUT_EOF'
+        thin-manifests = true
+        sign-manifests = false
+        profile-formats = portage-2
+        cache-formats = md5-dict
+        masters = core-kit
+        LAYOUT_EOF
+
+        cat > ${ROOT}/etc/portage/repos.conf/overlay-local << 'REPO_EOF'
+        [overlay-local]
+        location = /var/overlay/overlay-local
+        auto-sync = no
+        priority = 10
+        REPO_EOF
+
+        wget -O ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
+        https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
