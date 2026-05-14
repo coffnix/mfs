@@ -99,6 +99,7 @@ mchroot:
           app-arch/xz-utils
           app-admin/eselect
           app-shells/bash
+          app-misc/pax-utils
           net-misc/rsync
           net-misc/wget
           sys-devel/autoconf
