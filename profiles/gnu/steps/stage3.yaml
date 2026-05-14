@@ -46,4 +46,4 @@ mchroot:
         REPO_EOF
 
         wget -O ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
-        https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
+        https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
