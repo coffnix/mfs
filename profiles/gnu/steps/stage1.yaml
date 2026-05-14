@@ -92,12 +92,6 @@ mchroot:
 
         cd /tmp
 
-        echo "=== TESTANDO pax-utils ISOLADO ==="
-
-        emerge --oneshot app-misc/pax-utils || exit 1
-
-        echo "=== pax-utils OK ==="
-
         TO_BUILD="
           app-arch/bzip2
           app-arch/gzip
