@@ -24,15 +24,15 @@ mchroot:
         export ROOT=/tmp/stage1root
 
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
-        install -d ${ROOT}/var/overlay/overlay-local/profiles
-        install -d ${ROOT}/var/overlay/overlay-local/metadata
-        install -d ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi
-        install -d ${ROOT}/etc/portage/repos.conf
+        install -d /var/overlay/overlay-local/profiles
+        install -d /var/overlay/overlay-local/metadata
+        install -d /var/overlay/overlay-local/sys-boot/u-boot-bananapi
+        install -d /etc/portage/repos.conf
 
-        echo overlay-local > ${ROOT}/var/overlay/overlay-local/profiles/repo_name
+        echo overlay-local > /var/overlay/overlay-local/profiles/repo_name
 
         printf '%s\n' 'sys-boot' \
-          > ${ROOT}/var/overlay/overlay-local/profiles/categories
+          > /var/overlay/overlay-local/profiles/categories
 
         printf '%s\n' \
           'thin-manifests = true' \
@@ -40,20 +40,20 @@ mchroot:
           'profile-formats = portage-2' \
           'cache-formats = md5-dict' \
           'masters = core-kit' \
-          > ${ROOT}/var/overlay/overlay-local/metadata/layout.conf
+          > /var/overlay/overlay-local/metadata/layout.conf
 
         printf '%s\n' \
           '[overlay-local]' \
           'location = /var/overlay/overlay-local' \
           'auto-sync = no' \
           'priority = 10' \
-          > ${ROOT}/etc/portage/repos.conf/overlay-local
+          > /etc/portage/repos.conf/overlay-local
 
         wget --no-check-certificate \
-          -O ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
+          -O /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
           https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
 
-        ebuild ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild manifest
+        ebuild /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild manifest
         emerge sys-boot/u-boot-bananapi
 
         emerge sys-kernel/vanilla-sources
@@ -122,7 +122,6 @@ mchroot:
         make ARCH=arm64 olddefconfig
 
         make ARCH=arm64 -j$(nproc) Image modules dtbs
-
         make ARCH=arm64 INSTALL_MOD_PATH=${ROOT} modules_install
 
         install -d ${ROOT}/boot
@@ -135,7 +134,7 @@ mchroot:
           -exec install -m 0644 {} ${ROOT}/boot/dtb/ \;
 
         {% else %}
-        emerge sys-kernel/vanilla-sources
+        #emerge sys-kernel/vanilla-sources
 
         cd ${ROOT}/usr/src/linux
 
