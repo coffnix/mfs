@@ -5,7 +5,7 @@ mchroot:
   steps:
     - none: |
         # Do this so we have an updated tree if resuming from here:
-        GIT_SSL_NO_VERIFY=true ego sync
+        #GIT_SSL_NO_VERIFY=true ego sync
 
         # Do this before setting ROOT:
         /usr/sbin/env-update
@@ -23,27 +23,107 @@ mchroot:
 
         export ROOT=/tmp/stage1root
 
-        install -d ${ROOT}/var/overlay/overlay-local/profiles
-        install -d ${ROOT}/var/overlay/overlay-local/metadata
-        install -d ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi
-        install -d ${ROOT}/etc/portage/repos.conf
+        {% if target == "armv7a-unknown-linux-gnueabihf" %}
+        install -d /var/overlay/overlay-local/profiles
+        install -d /var/overlay/overlay-local/metadata
+        install -d /var/overlay/overlay-local/sys-boot/u-boot-bananapi
+        install -d /etc/portage/repos.conf
 
-        echo overlay-local > ${ROOT}/var/overlay/overlay-local/profiles/repo_name
+        echo overlay-local > /var/overlay/overlay-local/profiles/repo_name
 
-        cat > ${ROOT}/var/overlay/overlay-local/metadata/layout.conf << 'LAYOUT_EOF'
-        thin-manifests = true
-        sign-manifests = false
-        profile-formats = portage-2
-        cache-formats = md5-dict
-        masters = core-kit
-        LAYOUT_EOF
+        printf '%s\n' 'sys-boot' \
+          > /var/overlay/overlay-local/profiles/categories
 
-        cat > ${ROOT}/etc/portage/repos.conf/overlay-local << 'REPO_EOF'
-        [overlay-local]
-        location = /var/overlay/overlay-local
-        auto-sync = no
-        priority = 10
-        REPO_EOF
+        printf '%s\n' \
+          'thin-manifests = true' \
+          'sign-manifests = false' \
+          'profile-formats = portage-2' \
+          'cache-formats = md5-dict' \
+          'masters = core-kit' \
+          > /var/overlay/overlay-local/metadata/layout.conf
 
-        wget -O ${ROOT}/var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
-        https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
+        printf '%s\n' \
+          '[overlay-local]' \
+          'location = /var/overlay/overlay-local' \
+          'auto-sync = no' \
+          'priority = 10' \
+          > /etc/portage/repos.conf/overlay-local
+
+        wget --no-check-certificate \
+          -O /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
+          https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
+
+        ebuild /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild manifest
+        emerge sys-boot/u-boot-bananapi
+
+        emerge sys-kernel/vanilla-sources
+
+        cd /usr/src/linux
+
+        make ARCH=arm sunxi_defconfig
+        make ARCH=arm olddefconfig
+
+        make ARCH=arm -j$(nproc) zImage modules dtbs
+
+        make ARCH=arm INSTALL_MOD_PATH=/tmp/stage1root modules_install
+
+        install -d /tmp/stage1root/boot
+        install -d /tmp/stage1root/boot/dtb
+
+        install -m 0644 arch/arm/boot/zImage \
+          /tmp/stage1root/boot/zImage
+
+        find arch/arm/boot/dts/ -type f -name 'sun7i-a20-*.dtb' \
+          -exec install -m 0644 {} /tmp/stage1root/boot/dtb/ \;
+
+        cp -f \
+          arch/arm/boot/dts/sun7i-a20-bananapro.dtb \
+          /tmp/stage1root/boot/sun7i-a20.dtb
+
+        printf '%s\n' \
+          'setenv bootargs console=ttyS0,115200 root=/dev/mmcblk0p1 rootwait panic=10' \
+          '' \
+          'load mmc 0:1 0x42000000 zImage' \
+          'load mmc 0:1 0x43000000 sun7i-a20.dtb' \
+          '' \
+          'bootz 0x42000000 - 0x43000000' \
+          > /tmp/stage1root/boot/boot.cmd
+
+        mkimage -C none -A arm -T script \
+          -d /tmp/stage1root/boot/boot.cmd \
+          /tmp/stage1root/boot/boot.scr
+
+        {% elif target == "x86_64-pc-linux-gnu" %}
+        ego profile mix-ins +kernel-sid
+
+        emerge sys-kernel/debian-sources:sid
+
+        cd /usr/src/linux
+
+        make olddefconfig
+
+        make -j$(nproc)
+
+        make INSTALL_MOD_PATH=/tmp/stage1root modules_install
+
+        install -d /tmp/stage1root/boot
+
+        install -m 0644 arch/x86/boot/bzImage \
+          /tmp/stage1root/boot/kernel
+
+        {% else %}
+        emerge sys-kernel/vanilla-sources
+
+        cd /usr/src/linux
+
+        make olddefconfig
+
+        make -j$(nproc)
+
+        make INSTALL_MOD_PATH=/tmp/stage1root modules_install
+
+        install -d /tmp/stage1root/boot
+
+        install -m 0644 arch/arm64/boot/Image \
+          /tmp/stage1root/boot/kernel
+        {% endif %}

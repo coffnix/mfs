@@ -98,6 +98,7 @@ mchroot:
           app-arch/tar
           app-arch/xz-utils
           app-admin/eselect
+          sys-apps/locale-gen
           app-shells/bash
           app-misc/pax-utils
           net-misc/rsync
