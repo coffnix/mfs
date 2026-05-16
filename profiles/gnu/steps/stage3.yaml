@@ -57,6 +57,8 @@ mchroot:
         emerge sys-boot/u-boot-bananapi
 
         emerge sys-kernel/vanilla-sources
+        emerge sys-libs/ncurses
+        emerge dev-embedded/u-boot-tools
 
         cd ${ROOT}/usr/src/linux
 
@@ -91,7 +93,7 @@ mchroot:
           'bootz 0x42000000 - 0x43000000' \
           > ${ROOT}/boot/boot.cmd
 
-        mkimage -C none -A arm -T script \
+        ${ROOT}/usr/bin/mkimage -C none -A arm -T script \
           -d ${ROOT}/boot/boot.cmd \
           ${ROOT}/boot/boot.scr
 
@@ -134,7 +136,7 @@ mchroot:
           -exec install -m 0644 {} ${ROOT}/boot/dtb/ \;
 
         {% else %}
-        #emerge sys-kernel/vanilla-sources
+        emerge sys-kernel/vanilla-sources
 
         cd ${ROOT}/usr/src/linux
 
