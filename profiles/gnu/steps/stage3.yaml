@@ -5,7 +5,7 @@ mchroot:
   steps:
     - none: |
         # Do this so we have an updated tree if resuming from here:
-        GIT_SSL_NO_VERIFY=true ego sync
+        #GIT_SSL_NO_VERIFY=true ego sync
 
         # Do this before setting ROOT:
         /usr/sbin/env-update
@@ -22,6 +22,14 @@ mchroot:
         export GIT_CEILING_DIRECTORIES=/var/tmp/portage:/tmp:/
 
         export ROOT=/tmp/stage1root
+        emerge -1 sys-apps/sysvinit
+        emerge -1 sys-apps/openrc
+
+        USE="-pam" emerge -1 sys-apps/shadow
+        USE="-elogind" emerge -1 sys-libs/pam
+        emerge -1 sys-auth/pambase
+        emerge -1 sys-auth/elogind
+        emerge -1 sys-apps/shadow
 
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
         install -d /var/overlay/overlay-local/profiles
@@ -49,53 +57,52 @@ mchroot:
           'priority = 10' \
           > /etc/portage/repos.conf/overlay-local
 
-        wget --no-check-certificate \
-          -O /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
-          https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
+        #wget --no-check-certificate \
+        #  -O /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild \
+        #  https://raw.githubusercontent.com/coffnix/coffnix-ebuilds/refs/heads/master/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild
 
-        ebuild /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild manifest
-        emerge sys-boot/u-boot-bananapi
+        #ebuild /var/overlay/overlay-local/sys-boot/u-boot-bananapi/u-boot-bananapi-2026.04.ebuild manifest
+        #emerge sys-boot/u-boot-bananapi
 
-        emerge sys-kernel/vanilla-sources
-        emerge sys-libs/ncurses
-        emerge dev-embedded/u-boot-tools
+        #emerge sys-kernel/vanilla-sources
+        #emerge sys-libs/ncurses
+        #emerge dev-embedded/u-boot-tools
 
-        cd ${ROOT}/usr/src/linux
+        #cd ${ROOT}/usr/src/linux
 
-        make ARCH=arm sunxi_defconfig
-        make ARCH=arm olddefconfig
+        #make ARCH=arm sunxi_defconfig
+        #make ARCH=arm olddefconfig
 
-        make ARCH=arm -j$(nproc) zImage modules dtbs
-        make ARCH=arm INSTALL_MOD_PATH=${ROOT} modules_install
+        #make ARCH=arm -j$(nproc) zImage modules dtbs
+        #make ARCH=arm INSTALL_MOD_PATH=${ROOT} modules_install
 
-        install -d ${ROOT}/boot
-        install -d ${ROOT}/boot/dtb
+        #install -d ${ROOT}/boot
+        #install -d ${ROOT}/boot/dtb
 
-        install -m 0644 arch/arm/boot/zImage \
-          ${ROOT}/boot/zImage
+        #install -m 0644 arch/arm/boot/zImage \
+        #  ${ROOT}/boot/zImage
 
-        find arch/arm/boot/dts/ -type f -name 'sun7i-a20-*.dtb' \
-          -exec install -m 0644 {} ${ROOT}/boot/dtb/ \;
+        #find arch/arm/boot/dts/ -type f -name 'sun7i-a20-*.dtb' \
+        #  -exec install -m 0644 {} ${ROOT}/boot/dtb/ \;
 
-        cp -f \
-          arch/arm/boot/dts/allwinner/sun7i-a20-bananapro.dtb \
-          ${ROOT}/boot/sun7i-a20.dtb 2>/dev/null || \
-        cp -f \
-          arch/arm/boot/dts/sun7i-a20-bananapro.dtb \
-          ${ROOT}/boot/sun7i-a20.dtb
+        #cp -f \
+        #  arch/arm/boot/dts/allwinner/sun7i-a20-bananapro.dtb \
+        #  ${ROOT}/boot/dtb/sun7i-a20-bananapro.dtb 2>/dev/null || \
+        #cp -f \
+        #  arch/arm/boot/dts/sun7i-a20-bananapro.dtb \
+        #  ${ROOT}/boot/dtb/sun7i-a20-bananapro.dtb
 
         install -d ${ROOT}/etc
 
         printf '%s\n' \
-          '/dev/mmcblk0p2  /      ext4    defaults,noatime  0 1' \
-          '/dev/mmcblk0p1  /boot  vfat    defaults          0 2' \
+          'UUID=e9f90286-197d-4ed4-a459-94ea0514c252  /  ext4  defaults,noatime  0 1' \
           > ${ROOT}/etc/fstab
 
         printf '%s\n' \
-          'setenv bootargs console=ttyS0,115200 root=/dev/mmcblk0p2 rootwait panic=10' \
+          'setenv bootargs console=ttyS0,115200 console=tty1 root=UUID=e9f90286-197d-4ed4-a459-94ea0514c252 rootwait rootfstype=ext4 panic=10' \
           '' \
-          'load mmc 0:1 0x42000000 zImage' \
-          'load mmc 0:1 0x43000000 sun7i-a20.dtb' \
+          'load mmc 0:1 0x42000000 boot/zImage' \
+          'load mmc 0:1 0x43000000 boot/dtb/sun7i-a20-bananapro.dtb' \
           '' \
           'bootz 0x42000000 - 0x43000000' \
           > ${ROOT}/boot/boot.cmd
