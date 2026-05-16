@@ -79,6 +79,8 @@ tools:
         ../configure \
         --prefix=/usr \
         --build=${CLFS_HOST} \
+        --disable-libctf \
+        --disable-werror \
         --host=${CLFS_TARGET} \
         --target=${CLFS_TARGET} \
         --with-sysroot=${CLFS} \

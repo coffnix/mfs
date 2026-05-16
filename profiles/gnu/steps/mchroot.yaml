@@ -3,12 +3,18 @@ mchroot:
     template: mchroot.tmpl
   steps:
     - gcc-final: |
-        export CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}"
-        export CXX="${CLFS_TARGET}-g++ ${CLFS_CFLAGS}"
+        #export CC="${CLFS_TARGET}-gcc ${CLFS_CFLAGS}"
+        #export CXX="${CLFS_TARGET}-g++ ${CLFS_CFLAGS}"
+        #export CFLAGS="${CLFS_CFLAGS}"
+        #export CXXFLAGS="${CLFS_CFLAGS}"
+        #export CPPFLAGS=""
+        #export LDFLAGS=""
+        export CC="${CLFS_TARGET}-gcc --sysroot=/"
+        export CXX="${CLFS_TARGET}-g++ --sysroot=/"
         export CFLAGS="${CLFS_CFLAGS}"
         export CXXFLAGS="${CLFS_CFLAGS}"
         export CPPFLAGS=""
-        export LDFLAGS=""
+        export LD_LIBRARY_PATH="/usr/lib:/lib"
 
         rm -rf gcc-build
         mkdir gcc-build
