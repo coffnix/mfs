@@ -558,11 +558,6 @@ mchroot:
         echo 'sys-apps/util-linux caps cramfs logger ncurses nls pam python readline split-usr static-libs suid tty-helpers unicode' >> /etc/portage/package.use
         echo 'dev-libs/nettle gmp' >> /etc/portage/package.use
         echo 'sys-libs/ncurses cxx gpm split-usr tinfo unicode' >> /etc/portage/package.use
-        echo 'sys-apps/openrc bash pam sysvinit unicode' >> /etc/portage/package.use
-        echo 'sys-auth/pambase elogind nullok passwdqc yescrypt' >> /etc/portage/package.use
-        echo 'sys-libs/pam berkdb elogind nls' >> /etc/portage/package.use
-        echo 'sys-auth/elogind acl pam policykit' >> /etc/portage/package.use
-        echo 'sys-auth/polkit elogind introspection pam' >> /etc/portage/package.use
         emerge --jobs=3 python
         emerge --jobs=3 util-linux
         emerge --jobs=3 portage

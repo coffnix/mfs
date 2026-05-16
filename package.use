@@ -1,0 +1,11 @@
+sys-apps/kmod lzma pkcs7 python tools zlib zstd
+sys-apps/attr nls split-usr static-libs 
+sys-apps/acl nls split-usr
+sys-apps/util-linux caps cramfs logger ncurses nls pam python readline split-usr static-libs suid tty-helpers unicode
+dev-libs/nettle gmp
+sys-libs/ncurses cxx gpm split-usr tinfo unicode
+sys-apps/openrc bash pam sysvinit unicode
+sys-auth/pambase elogind nullok passwdqc yescrypt
+sys-libs/pam berkdb elogind nls
+sys-auth/elogind acl pam policykit
+sys-auth/polkit elogind introspection pam

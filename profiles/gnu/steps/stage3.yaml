@@ -5,12 +5,15 @@ mchroot:
   steps:
     - none: |
         # Do this so we have an updated tree if resuming from here:
-        #GIT_SSL_NO_VERIFY=true ego sync
+        GIT_SSL_NO_VERIFY=true ego sync
 
         # Do this before setting ROOT:
         /usr/sbin/env-update
         /sbin/ldconfig
         source /etc/profile
+
+        epro flavor core
+        epro mix-ins stage1
 
         export LANG=C
         export LC_ALL=C
@@ -21,16 +24,36 @@ mchroot:
         export GIT_DISCOVERY_ACROSS_FILESYSTEM=0
         export GIT_CEILING_DIRECTORIES=/var/tmp/portage:/tmp:/
 
+
+        install -d /tmp/stage1root/var/git
+        rsync -aH --numeric-ids /var/git/ /tmp/stage1root/var/git/
+        rsync -aH --numeric-ids /etc/portage/ /tmp/stage1root/etc/portage/
         export ROOT=/tmp/stage1root
+        export PORTAGE_CONFIGROOT=/tmp/stage1root
+        cp /etc/ego.conf ${ROOT}/etc/ego.conf
+
+        epro mix-ins -stage1
+        epro flavor core
+
         emerge -1 sys-apps/sysvinit
-        emerge -1 sys-apps/openrc
 
         USE="-pam" emerge -1 sys-apps/shadow
         USE="-elogind" emerge -1 sys-libs/pam
         emerge -1 sys-auth/pambase
+        echo 'dev-libs/libpcre static-libs' >> /etc/portage/package.use
+        echo 'dev-libs/libxml2 lzma readline icu' >> /etc/portage/package.use
         emerge -1 sys-auth/elogind
         emerge -1 sys-apps/shadow
+        emerge -1 sys-apps/openrc
+        epro flavor desktop
 
+        echo 'sys-apps/openrc bash pam sysvinit unicode' >> ${ROOT}/etc/portage/package.use
+        echo 'sys-auth/pambase elogind nullok passwdqc yescrypt' >> ${ROOT}/etc/portage/package.use
+        echo 'sys-libs/pam berkdb elogind nls' >> ${ROOT}/etc/portage/package.use
+        echo 'sys-auth/elogind acl pam policykit' >> ${ROOT}/etc/portage/package.use
+        echo 'sys-auth/polkit elogind introspection pam' >> ${ROOT}/etc/portage/package.use
+
+    - none-final: |
         {% if target == "armv7a-unknown-linux-gnueabihf" %}
         install -d /var/overlay/overlay-local/profiles
         install -d /var/overlay/overlay-local/metadata
