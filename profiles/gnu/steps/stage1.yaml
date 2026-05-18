@@ -47,6 +47,7 @@ mchroot:
         install -m 0755 -o 250 -g 250 -d ${ROOT}/var/git
 
         install -d ${ROOT}/etc/portage/make.profile
+        cp /etc/locale.gen ${ROOT}/etc/locale.gen
 
         ln -sf /var/git/meta-repo ${ROOT}/var/git/
 
