@@ -99,7 +99,6 @@ mchroot:
           app-arch/tar
           app-arch/xz-utils
           app-admin/eselect
-          sys-apps/locale-gen
           app-shells/bash
           app-misc/pax-utils
           net-misc/rsync
@@ -136,7 +135,12 @@ mchroot:
         "
 
         emerge --noreplace --oneshot --jobs=3 ${TO_BUILD}
-
-        ego profile mix-in -stage1
-
+        emerge sys-libs/glibc
+        emerge sys-apps/locale-gen
+        echo -e 'en_US.UTF-8 UTF-8\nC.UTF-8 UTF-8' > ${ROOT}/etc/locale.gen
+        export ROOT=
+        locale-gen -d /tmp/stage1root
+        export ROOT=/tmp/stage1root
+        ego profile mix-in +stage1
         rm -rf ${ROOT}/var/git/meta-repo
+
